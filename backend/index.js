@@ -1,10 +1,13 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const cors = require("cors");
 // const { logRequestResponse } = require("./middlewares/createLogs");
 const userRouter = require("./routes/user");
 const { connectMongoDb } = require("./config/connection");
 
 const app = express();
+app.use(cors());
+
 // app.use(bodyParser.json());
 
 // Connect MongoDb

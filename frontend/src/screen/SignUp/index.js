@@ -1,30 +1,16 @@
-import {
-  Alert,
-  Button,
-  Container,
-  FormControl,
-  Grid,
-  InputLabel,
-  Link,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Button, Container, Grid, TextField, Typography } from "@mui/material";
 import axios from "axios";
 import React, { useState } from "react";
 import qs from "qs";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const SignupPage = () => {
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-
   const [formData, setFormData] = useState({
     username: "",
     full_name: "",
     email: "",
     password: "",
-    gender: "",
   });
 
   const handleChange = (event) => {
@@ -44,40 +30,29 @@ const SignupPage = () => {
         { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
       );
       console.log("Success:", response.data);
-      setSuccessMessage("Signup successful");
-      setErrorMessage("");
+      toast.success("Signup successful");
     } catch (error) {
       console.error("Error:", error.response.data.error);
-      setErrorMessage("Error signing up");
-      setSuccessMessage("");
+      toast.error("Error signing up");
     }
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container
+      component="main"
+      maxWidth="xs"
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+      }}
+    >
+      <ToastContainer />
       <Typography variant="h2" align="center" gutterBottom>
         Sign Up
       </Typography>
-      {successMessage && (
-        <Alert
-          severity="success"
-          style={{ marginBottom: "10px" }}
-          onClose={() => setSuccessMessage("")}
-          open={Boolean(successMessage)}
-        >
-          {successMessage}
-        </Alert>
-      )}
-      {errorMessage && (
-        <Alert
-          severity="error"
-          style={{ marginBottom: "10px" }}
-          onClose={() => setErrorMessage("")}
-          open={Boolean(errorMessage)}
-        >
-          {errorMessage}
-        </Alert>
-      )}
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
           <Grid item xs={12}>
@@ -123,35 +98,14 @@ const SignupPage = () => {
             />
           </Grid>
           <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel id="gender-label">Gender</InputLabel>
-              <Select
-                labelId="gender-label"
-                id="gender"
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-                required
-              >
-                <MenuItem value="male">Male</MenuItem>
-                <MenuItem value="female">Female</MenuItem>
-                <MenuItem value="other">Other</MenuItem>
-              </Select>
-            </FormControl>
+            <Button type="submit" variant="contained" color="primary" fullWidth>
+              Sign Up
+            </Button>
           </Grid>
         </Grid>
-        <Button
-          sx={{ m: 2 }}
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-        >
-          Sign Up
-        </Button>
       </form>
       <Typography variant="body1" align="center" style={{ marginTop: "20px" }}>
-        Already have an account? <Link href="/login">Sign in</Link>
+        Already have an account? <a href="/login">Sign in</a>
       </Typography>
     </Container>
   );

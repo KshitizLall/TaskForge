@@ -1,4 +1,7 @@
 const User = require("../models/userModel");
+const express = require("express");
+const router = express.Router();
+const bcrypt = require("bcrypt");
 
 async function handleGetAllUsers(req, res) {
   try {
@@ -28,13 +31,29 @@ async function handleGetUserById(req, res) {
 
 async function handleCreateUser(req, res) {
   try {
-    const newUser = req.body;
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    // Create a new user instance using the data from the request body
+    const newUser = new User({
+      username: req.body.username,
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      email: req.body.email,
+      password: hashedPassword,
+      role: req.body.role,
+      gender: req.body.gender,
+    });
+
     // Save the new user to the database
-    const savedUser = await User.create(newUser);
-    return res.status(201).json(savedUser);
+    const savedUser = await newUser.save();
+
+    // Respond with a success message
+    res
+      .status(201)
+      .json({ message: "User created successfully", user: savedUser });
   } catch (error) {
-    console.error("Error creating user:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    // Handle any errors and respond with an error message
+    console.error("Error creating user:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 

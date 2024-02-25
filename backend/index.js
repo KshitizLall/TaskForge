@@ -1,22 +1,30 @@
 const express = require("express");
-const bodyParser = require("body-parser");
-// const { logRequestResponse } = require("./middlewares/createLogs");
-const userRouter = require("./routes/user");
+const cors = require("cors");
+const passport = require("passport"); // Import Passport.js
 const { connectMongoDb } = require("./config/connection");
 
 const app = express();
-// app.use(bodyParser.json());
+app.use(cors());
 
-// Connect MongoDb
+// Connect MongoDB
 connectMongoDb();
 
-// middlewares
+// Middleware
 app.use(express.urlencoded({ extended: false }));
-// app.use(logRequestResponse);
+app.use(express.json());
+app.use(passport.initialize()); // Initialize Passport middleware
 
 // Routes
-app.use("/api/users", userRouter);
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/users", require("./routes/user"));
 
-app.listen(3001, () => {
-  console.log(`Server is running on port 3001`);
+// Error handling middleware (if needed)
+// app.use((err, req, res, next) => {
+//   console.error(err.stack);
+//   res.status(500).send('Something broke!');
+// });
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
 const express = require("express");
 const router = express.Router();
+const bcrypt = require("bcrypt");
 
 async function handleGetAllUsers(req, res) {
   try {
@@ -30,12 +31,14 @@ async function handleGetUserById(req, res) {
 
 async function handleCreateUser(req, res) {
   try {
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
     // Create a new user instance using the data from the request body
     const newUser = new User({
       username: req.body.username,
-      full_name: req.body.full_name,
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
       email: req.body.email,
-      password: req.body.password,
+      password: hashedPassword,
       role: req.body.role,
       gender: req.body.gender,
     });

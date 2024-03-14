@@ -1,30 +1,18 @@
-import { Signup } from "./screen/Signup";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Dashboard } from "./screen/Dashboard";
+import { NotFound } from "./screen/Exceptions/NotFound";
+import Login from "./screen/Signin";
+import Signup from "./screen/Signup";
 
 export default function App() {
   return (
-    <>
-      <Signup />
-    </>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Router>
   );
 }
-
-// import React from "react";
-// import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-// import Navbar from "./components/Navbar";
-
-// const Home = () => <h1>Home Page</h1>;
-// const About = () => <h1>About Page</h1>;
-
-// export default function App() {
-//   return (
-//     <Router>
-//       <div>
-//         <Navbar />
-//         <Switch>
-//           <Route path="/" exact component={Home} />
-//           <Route path="/about" component={About} />
-//         </Switch>
-//       </div>
-//     </Router>
-//   );
-// }

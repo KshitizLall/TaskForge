@@ -12,7 +12,6 @@ connectMongoDb();
 // Middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(passport.initialize()); // Initialize Passport middleware
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));

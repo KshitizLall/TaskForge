@@ -1,7 +1,72 @@
 const User = require("../models/userModel");
 const express = require("express");
-const router = express.Router();
 const bcrypt = require("bcrypt");
+
+// Handle Login
+async function handleLogin(req, res) {
+  try {
+    const { username, password } = req.body;
+
+    // Check if username and password are provided
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ message: "Username and password are required" });
+    }
+
+    // Find the user by their username
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    // Verify password (insecure, storing plaintext passwords)
+    if (user.password !== password) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    // If username and password are valid, you can simply return success message or user data
+    return res.json({ message: "Login successful", user });
+  } catch (error) {
+    console.error("Error during login:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// Register User
+async function handleSignUp(req, res) {
+  try {
+    const { username, first_name, last_name, email, password, role, gender } =
+      req.body;
+
+    // Check if the username or email already exists
+    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "Username or email already exists" });
+    }
+
+    // Create new user (storing plaintext password)
+    const newUser = new User({
+      username,
+      first_name,
+      last_name,
+      email,
+      password, // Storing plaintext password
+      role,
+      gender,
+    });
+
+    // Save user to the database
+    await newUser.save();
+
+    res.status(201).json({ message: "User created successfully" });
+  } catch (error) {
+    console.error("Error during sign up:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
 
 async function handleGetAllUsers(req, res) {
   try {
@@ -96,4 +161,6 @@ module.exports = {
   handleCreateUser,
   handleUpdateUserById,
   handleDeleteUserById,
+  handleLogin,
+  handleSignUp,
 };

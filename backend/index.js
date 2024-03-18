@@ -16,6 +16,8 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/users", require("./routes/user"));
+app.use("/api/projects", require("./routes/project")); // Add route for projects
+app.use("/api/tasks", require("./routes/task")); // Add route for tasks
 
 // Error handling middleware (if needed)
 // app.use((err, req, res, next) => {

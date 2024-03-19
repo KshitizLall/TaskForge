@@ -58,7 +58,7 @@ Go to the project directory
 Go to the Frontend directory
 
 ```bash
-  cd ./frontend/
+  cd .\frontend\
 ```
 
 Install Frontend dependencies
@@ -76,7 +76,7 @@ Start the Frontend server
 Go to the Backend directory
 
 ```bash
-  cd ./backend/
+  cd .\backend\
 ```
 
 Install Backend dependencies

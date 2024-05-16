@@ -2,31 +2,28 @@ const User = require("../models/userModel");
 const express = require("express");
 const bcrypt = require("bcrypt");
 
+const jwt = require("jsonwebtoken");
+
 // Handle Login
 async function handleLogin(req, res) {
   try {
     const { username, password } = req.body;
-
-    // Check if username and password are provided
     if (!username || !password) {
       return res
         .status(400)
         .json({ message: "Username and password are required" });
     }
-
-    // Find the user by their username
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(401).json({ message: "Invalid username or password" });
     }
-
-    // Verify password (insecure, storing plaintext passwords)
     if (user.password !== password) {
       return res.status(401).json({ message: "Invalid username or password" });
     }
-
-    // If username and password are valid, you can simply return success message or user data
-    return res.json({ message: "Login successful", user });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h", // Token expiration time
+    });
+    return res.json({ message: "Login successful", token, user });
   } catch (error) {
     console.error("Error during login:", error);
     return res.status(500).json({ message: "Internal Server Error" });

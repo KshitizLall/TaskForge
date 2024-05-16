@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const passport = require("passport"); // Import Passport.js
 const { connectMongoDb } = require("./config/connection");
+require("dotenv").config();
 
 const app = express();
 app.use(cors());

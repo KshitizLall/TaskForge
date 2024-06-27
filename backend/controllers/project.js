@@ -1,22 +1,18 @@
+const User = require("../models/userModel");
 const Project = require("../models/projectModel");
 const Task = require("../models/taskModel");
 const { validationResult } = require("express-validator");
 
 // Create a new project
-// Create a new project
 async function createProject(req, res) {
   try {
-    const { title, description, userId } = req.body;
+    const { title, description } = req.body;
+    const userId = req.user.userId;
 
-    // Validate input
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    // Check if userId is provided
-    if (!userId) {
-      return res.status(400).json({ message: "User ID is required" });
+    // Check if the user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
     }
 
     // Create a new project with the provided userId
@@ -27,7 +23,6 @@ async function createProject(req, res) {
 
     res.status(201).json({ message: "Project created successfully", project });
   } catch (error) {
-    console.error("Error creating project:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 }

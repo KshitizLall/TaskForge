@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const authenticateToken = require("../middlewares/auth");
 
 const {
   handleGetAllUsers,
@@ -17,13 +18,17 @@ router.post("/login", handleLogin);
 // Register Route
 router.post("/signup", handleSignUp);
 
-router.route("/").get(handleGetAllUsers).post(handleCreateUser);
+// Route to get all users and create a new user (protected)
+router
+  .route("/")
+  .get(authenticateToken, handleGetAllUsers)
+  .post(authenticateToken, handleCreateUser);
 
-// Route to get a user by ID
+// Route to get, update, and delete a user by ID (protected)
 router
   .route("/:userId")
-  .get(handleGetUserById)
-  .patch(handleUpdateUserById)
-  .delete(handleDeleteUserById);
+  .get(authenticateToken, handleGetUserById)
+  .patch(authenticateToken, handleUpdateUserById)
+  .delete(authenticateToken, handleDeleteUserById);
 
 module.exports = router;

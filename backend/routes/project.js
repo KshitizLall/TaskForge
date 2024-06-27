@@ -1,4 +1,5 @@
 const express = require("express");
+const authenticateToken = require("../middlewares/auth");
 const router = express.Router();
 const {
   createProject,
@@ -8,19 +9,17 @@ const {
   deleteProjectById,
 } = require("../controllers/project");
 
-// Create a new project
-router.post("/", createProject);
+// Route to create a project (protected)
+router.post("/", authenticateToken, createProject);
 
-// Get all projects
-router.get("/", getAllProjects);
+// Route to get all projects (protected)
+router.get("/", authenticateToken, getAllProjects);
 
-// Get a project by ID
-router.get("/:id", getProjectById);
-
-// Update a project by ID
-router.patch("/:id", updateProjectById);
-
-// Delete a project by ID
-router.delete("/:id", deleteProjectById);
+// Route to get, update, and delete a project by ID (protected)
+router
+  .route("/:id")
+  .get(authenticateToken, getProjectById)
+  .patch(authenticateToken, updateProjectById)
+  .delete(authenticateToken, deleteProjectById);
 
 module.exports = router;

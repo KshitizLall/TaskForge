@@ -1,34 +1,6 @@
-const User = require("../models/userModel");
-const express = require("express");
 const bcrypt = require("bcrypt");
-
 const jwt = require("jsonwebtoken");
-
-// Handle Login
-async function handleLogin(req, res) {
-  try {
-    const { username, password } = req.body;
-    if (!username || !password) {
-      return res
-        .status(400)
-        .json({ message: "Username and password are required" });
-    }
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(401).json({ message: "Invalid username or password" });
-    }
-    if (user.password !== password) {
-      return res.status(401).json({ message: "Invalid username or password" });
-    }
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h", // Token expiration time
-    });
-    return res.json({ message: "Login successful", token, user });
-  } catch (error) {
-    console.error("Error during login:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-}
+const User = require("../models/userModel");
 
 // Register User
 async function handleSignUp(req, res) {
@@ -44,13 +16,16 @@ async function handleSignUp(req, res) {
         .json({ message: "Username or email already exists" });
     }
 
-    // Create new user (storing plaintext password)
+    // Hash the password before saving it
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new user
     const newUser = new User({
       username,
       first_name,
       last_name,
       email,
-      password, // Storing plaintext password
+      password: hashedPassword, // Storing hashed password
       role,
       gender,
     });
@@ -65,9 +40,40 @@ async function handleSignUp(req, res) {
   }
 }
 
+// Handle Login
+async function handleLogin(req, res) {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ message: "Username and password are required" });
+    }
+
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "2h",
+    });
+    return res.json({ message: "Login successful", token, user });
+  } catch (error) {
+    console.error("Error during login:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// Get All Users
 async function handleGetAllUsers(req, res) {
   try {
-    // Fetch all users from the database
     const users = await User.find();
     return res.json(users);
   } catch (error) {
@@ -76,10 +82,10 @@ async function handleGetAllUsers(req, res) {
   }
 }
 
+// Get User by ID
 async function handleGetUserById(req, res) {
   try {
     const userId = req.params.userId;
-    // Find the user by ID in the database
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -91,39 +97,47 @@ async function handleGetUserById(req, res) {
   }
 }
 
+// Create User
 async function handleCreateUser(req, res) {
   try {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    // Create a new user instance using the data from the request body
+    const { username, first_name, last_name, email, password, role, gender } =
+      req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const newUser = new User({
-      username: req.body.username,
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
-      email: req.body.email,
+      username,
+      first_name,
+      last_name,
+      email,
       password: hashedPassword,
-      role: req.body.role,
-      gender: req.body.gender,
+      role,
+      gender,
     });
 
-    // Save the new user to the database
     const savedUser = await newUser.save();
 
-    // Respond with a success message
     res
       .status(201)
       .json({ message: "User created successfully", user: savedUser });
   } catch (error) {
-    // Handle any errors and respond with an error message
     console.error("Error creating user:", error.message);
     res.status(500).json({ error: "Internal Server Error" });
   }
 }
 
+// Update User by ID
 async function handleUpdateUserById(req, res) {
   try {
     const userId = req.params.userId;
     const updatedUserData = req.body;
-    // Find the user by ID in the database and update it
+
+    if (updatedUserData.password) {
+      updatedUserData.password = await bcrypt.hash(
+        updatedUserData.password,
+        10
+      );
+    }
+
     const updatedUser = await User.findByIdAndUpdate(userId, updatedUserData, {
       new: true,
     });
@@ -137,15 +151,18 @@ async function handleUpdateUserById(req, res) {
   }
 }
 
+// Delete User by ID
 async function handleDeleteUserById(req, res) {
   try {
     const userId = req.params.userId;
-    // Find the user by ID in the database and delete it
     const deletedUser = await User.findByIdAndDelete(userId);
     if (!deletedUser) {
       return res.status(404).json({ message: "User not found" });
     }
-    return res.json(deletedUser);
+    return res.json({
+      message: "User deleted successfully",
+      user: deletedUser,
+    });
   } catch (error) {
     console.error("Error deleting user:", error);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -153,11 +170,11 @@ async function handleDeleteUserById(req, res) {
 }
 
 module.exports = {
+  handleSignUp,
+  handleLogin,
   handleGetAllUsers,
   handleGetUserById,
   handleCreateUser,
   handleUpdateUserById,
   handleDeleteUserById,
-  handleLogin,
-  handleSignUp,
 };

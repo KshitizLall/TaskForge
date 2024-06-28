@@ -12,19 +12,31 @@ const taskSchema = new mongoose.Schema(
     },
     project: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Project", // References the 'Project' model
+      ref: "Project",
       required: true,
     },
     status: {
       type: String,
-      enum: ["todo", "in_progress", "done"],
-      default: "todo",
+      enum: ["Not Started", "On Progress", "Completed"],
+      default: "Not Started",
+    },
+    totalPoints: {
+      type: Number,
+      required: true,
+    },
+    dailyPoints: {
+      type: Number,
+      default: 0,
     },
   },
   {
     timestamps: true,
   }
 );
+
+taskSchema.methods.calculatePendingPoints = function () {
+  return this.totalPoints - this.dailyPoints;
+};
 
 const Task = mongoose.model("Task", taskSchema);
 

@@ -2,6 +2,17 @@ const Task = require("../models/taskModel");
 const Project = require("../models/projectModel");
 const { validationResult } = require("express-validator");
 
+// Function to update task status based on points
+function updateTaskStatus(task) {
+  if (task.dailyPoints === 0) {
+    task.status = "Not Started";
+  } else if (task.dailyPoints > 0 && task.dailyPoints < task.totalPoints) {
+    task.status = "On Progress";
+  } else if (task.dailyPoints >= task.totalPoints) {
+    task.status = "Completed";
+  }
+}
+
 // Create a new task
 async function createTask(req, res) {
   try {
@@ -11,7 +22,7 @@ async function createTask(req, res) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { title, description, projectId } = req.body;
+    const { title, description, projectId, totalPoints } = req.body;
 
     // Check if project exists
     const project = await Project.findById(projectId);
@@ -24,6 +35,9 @@ async function createTask(req, res) {
       title,
       description,
       project: projectId,
+      totalPoints,
+      dailyPoints: 0, // Initialize dailyPoints to 0
+      status: "Not Started", // Set initial status
     });
 
     // Save the new task to the database
@@ -74,19 +88,26 @@ async function getTaskById(req, res) {
 async function updateTaskById(req, res) {
   try {
     const taskId = req.params.id;
-    const { title, description } = req.body;
+    const { title, description, totalPoints, dailyPoints } = req.body;
 
     // Find the task by ID in the database and update it
-    const updatedTask = await Task.findByIdAndUpdate(
-      taskId,
-      { title, description },
-      { new: true }
-    );
-
-    // Check if task exists
-    if (!updatedTask) {
+    const task = await Task.findById(taskId);
+    if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }
+
+    task.title = title;
+    task.description = description;
+    task.totalPoints = totalPoints;
+
+    if (dailyPoints !== undefined) {
+      task.dailyPoints = dailyPoints;
+    }
+
+    // Update task status
+    updateTaskStatus(task);
+
+    const updatedTask = await task.save();
 
     res.json(updatedTask);
   } catch (error) {
@@ -115,10 +136,65 @@ async function deleteTaskById(req, res) {
   }
 }
 
+// Add daily points to a task
+async function addDailyPoints(req, res) {
+  try {
+    const taskId = req.params.id;
+    const { points } = req.body;
+
+    // Find the task by ID
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    // Update daily points (add or subtract)
+    task.dailyPoints = Math.max(
+      0,
+      Math.min(task.dailyPoints + points, task.totalPoints)
+    );
+
+    // Update task status
+    updateTaskStatus(task);
+
+    // Save the updated task
+    await task.save();
+
+    res
+      .status(200)
+      .json({ message: "Daily points updated successfully", task });
+  } catch (error) {
+    console.error("Error updating daily points:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+// Get pending points for a task
+async function getPendingPoints(req, res) {
+  try {
+    const taskId = req.params.id;
+
+    // Find the task by ID
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    const pendingPoints = task.calculatePendingPoints();
+
+    res.status(200).json({ task, pendingPoints });
+  } catch (error) {
+    console.error("Error fetching pending points:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 module.exports = {
   createTask,
   getAllTasks,
   getTaskById,
   updateTaskById,
   deleteTaskById,
+  addDailyPoints,
+  getPendingPoints,
 };

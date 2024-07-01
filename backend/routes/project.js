@@ -1,6 +1,7 @@
 const express = require("express");
-const authenticateToken = require("../middlewares/auth");
 const router = express.Router();
+const authenticateToken = require("../middlewares/auth");
+
 const {
   createProject,
   getAllProjects,

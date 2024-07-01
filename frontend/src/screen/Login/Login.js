@@ -102,7 +102,7 @@ const Login = () => {
         <Container maxWidth="xs">
           <Box
             sx={{
-              border: `0.5px solid ${theme.palette.primary.main}`,
+              border: "0.5px solid #A9A9A9",
               p: 5,
               borderRadius: theme.shape.borderRadius,
             }}
@@ -121,7 +121,6 @@ const Login = () => {
                     value={formData.username}
                     onChange={handleChange}
                     fullWidth
-                    required
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -132,7 +131,6 @@ const Login = () => {
                     value={formData.password}
                     onChange={handleChange}
                     fullWidth
-                    required
                   />
                 </Grid>
                 <Grid item xs={12}>

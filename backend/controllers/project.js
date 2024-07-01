@@ -27,10 +27,11 @@ async function createProject(req, res) {
   }
 }
 
-// Get all projects
+// Get all projects for the authenticated user
 async function getAllProjects(req, res) {
   try {
-    const projects = await Project.find();
+    const userId = req.user.userId;
+    const projects = await Project.find({ user: userId });
     res.json(projects);
   } catch (error) {
     console.error("Error fetching projects:", error);
@@ -38,11 +39,12 @@ async function getAllProjects(req, res) {
   }
 }
 
-// Get project by ID
+// Get project by ID for the authenticated user
 async function getProjectById(req, res) {
   try {
+    const userId = req.user.userId;
     const projectId = req.params.id;
-    const project = await Project.findById(projectId);
+    const project = await Project.findOne({ _id: projectId, user: userId });
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
     }
@@ -56,11 +58,12 @@ async function getProjectById(req, res) {
 // Update project by ID
 async function updateProjectById(req, res) {
   try {
+    const userId = req.user.userId;
     const projectId = req.params.id;
     const { title, description } = req.body;
 
-    const project = await Project.findByIdAndUpdate(
-      projectId,
+    const project = await Project.findOneAndUpdate(
+      { _id: projectId, user: userId },
       { title, description },
       { new: true }
     );
@@ -79,9 +82,13 @@ async function updateProjectById(req, res) {
 // Delete project by ID
 async function deleteProjectById(req, res) {
   try {
+    const userId = req.user.userId;
     const projectId = req.params.id;
 
-    const project = await Project.findByIdAndDelete(projectId);
+    const project = await Project.findOneAndDelete({
+      _id: projectId,
+      user: userId,
+    });
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
     }

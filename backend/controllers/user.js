@@ -25,8 +25,8 @@ async function handleSignUp(req, res) {
       first_name,
       last_name,
       email,
-      password: hashedPassword, // Storing hashed password
-      role,
+      password: hashedPassword,
+      role: "user",
       gender,
     });
 

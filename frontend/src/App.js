@@ -1,24 +1,52 @@
-import logo from './logo.svg';
-import './App.css';
+import { ThemeProvider } from "@mui/material";
+import Cookies from "js-cookie";
+import React from "react";
+import {
+  Navigate,
+  Route,
+  BrowserRouter as Router,
+  Routes,
+} from "react-router-dom";
+import { Toaster } from "sonner";
+import "./App.css";
+import MiniDrawer from "./component/Drawer/MiniDrawer";
+import Login from "./screen/Login/Login";
+import Register from "./screen/Register/Register";
+import { themeOptions } from "./theme";
+import store from "./Redux/store";
+import { Provider } from "react-redux";
 
 function App() {
+  const token = Cookies.get("token");
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <Provider store={store}>
+        <ThemeProvider theme={themeOptions}>
+          <Router>
+            <Toaster position="top-right" richColors />
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  token ? (
+                    <Navigate to="/dashboard" />
+                  ) : (
+                    <Navigate to="/register" />
+                  )
+                }
+              />
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/dashboard"
+                element={token ? <MiniDrawer /> : <Navigate to="/login" />}
+              />
+            </Routes>
+          </Router>
+        </ThemeProvider>
+      </Provider>
+    </>
   );
 }
 

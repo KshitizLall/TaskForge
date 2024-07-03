@@ -1,7 +1,12 @@
-import { Add as AddIcon, Edit as EditIcon } from "@mui/icons-material";
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Assignment as AssignmentIcon,
+} from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
   Button,
+  Box,
   Card,
   CardActions,
   CardContent,
@@ -13,6 +18,7 @@ import {
   DialogTitle,
   Grid,
   IconButton,
+  LinearProgress,
   TextField,
   Typography,
 } from "@mui/material";
@@ -23,32 +29,51 @@ import { toast } from "sonner";
 
 export const Project = () => {
   const [open, setOpen] = useState(false);
+  const [taskOpen, setTaskOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [projects, setProjects] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [error, setError] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
   const token = Cookies.get("token");
-  const userId = Cookies.get("userId"); // Assuming user ID is stored in cookies
+  const userId = Cookies.get("userId");
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await axios.get("http://localhost:3001/api/projects", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          params: {
-            userId: userId, // Pass user ID as a query parameter
-          },
-        });
-        setProjects(response.data);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      }
-    };
     fetchProjects();
   }, [token, userId]);
+
+  const fetchProjects = async () => {
+    try {
+      const response = await axios.get("http://localhost:3001/api/projects", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          userId: userId,
+        },
+      });
+      setProjects(response.data);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      toast.error("Error fetching projects");
+    }
+  };
+
+  const fetchTasks = async (projectId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/api/tasks?projectId=${projectId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setTasks(response.data);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      toast.error("Error fetching tasks");
+    }
+  };
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -60,6 +85,11 @@ export const Project = () => {
     setDescription("");
     setError(null);
     setEditingProject(null);
+  };
+
+  const handleTaskClose = () => {
+    setTaskOpen(false);
+    setTasks([]);
   };
 
   const handleCreate = async () => {
@@ -91,7 +121,7 @@ export const Project = () => {
       try {
         const response = await axios.post(
           "http://localhost:3001/api/projects",
-          { title, description, userId }, // Include user ID in the request body
+          { title, description, userId },
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -130,13 +160,21 @@ export const Project = () => {
     setOpen(true);
   };
 
+  const handleOpenTasks = async (projectId) => {
+    await fetchTasks(projectId);
+    setTaskOpen(true);
+  };
+
   return (
     <div>
       <Grid container spacing={2} alignItems="center">
         <Grid item>
-          <Button onClick={handleClickOpen}>
-            <AddIcon />
-            Create
+          <Button
+            onClick={handleClickOpen}
+            variant="contained"
+            startIcon={<AddIcon />}
+          >
+            Create Project
           </Button>
         </Grid>
         <Grid item>
@@ -186,6 +224,41 @@ export const Project = () => {
         </DialogActions>
       </Dialog>
 
+      <Dialog
+        open={taskOpen}
+        onClose={handleTaskClose}
+        sx={{
+          "& .MuiDialog-paper": {
+            width: "80%",
+            maxHeight: "80vh",
+          },
+          p: 5,
+          m: 4,
+        }}
+      >
+        <DialogTitle>Project Tasks</DialogTitle>
+        <DialogContent>
+          {tasks.map((task) => (
+            <Box key={task._id} sx={{ mb: 2 }}>
+              <Typography variant="subtitle1">{task.title}</Typography>
+              <LinearProgress
+                variant="determinate"
+                value={(task.dailyPoints / task.totalPoints) * 100}
+                sx={{ mb: 1 }}
+              />
+              <Typography variant="body2" color="text.secondary">
+                {task.description}
+              </Typography>
+            </Box>
+          ))}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleTaskClose} color="primary" variant="outlined">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Grid container spacing={2} mt={2}>
         {projects.map((project) => (
           <Grid item xs={12} sm={6} md={4} key={project._id}>
@@ -221,8 +294,13 @@ export const Project = () => {
                 </Typography>
               </CardContent>
               <CardActions>
-                <Button size="small" color="primary">
-                  Open
+                <Button
+                  size="small"
+                  color="primary"
+                  onClick={() => handleOpenTasks(project._id)}
+                  startIcon={<AssignmentIcon />}
+                >
+                  Tasks
                 </Button>
                 <IconButton
                   size="small"

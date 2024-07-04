@@ -1,36 +1,32 @@
-import React, { useState, useEffect } from "react";
+import { Add as AddIcon, Edit as EditIcon } from "@mui/icons-material";
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
+  Box,
   Button,
   Card,
   CardActions,
   CardContent,
   Chip,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
   Grid,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
   TextField,
   Typography,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Box,
-  CircularProgress,
 } from "@mui/material";
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Check as CheckIcon,
-} from "@mui/icons-material";
-import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { toast } from "sonner";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 export const Task = () => {
   const [open, setOpen] = useState(false);
@@ -43,7 +39,6 @@ export const Task = () => {
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [error, setError] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
-  const [newPoints, setNewPoints] = useState();
   const token = Cookies.get("token");
   const { projectId } = useParams();
 
@@ -55,7 +50,7 @@ export const Task = () => {
   const fetchTasks = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3001/api/tasks${
+        `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks${
           projectId ? `?projectId=${projectId}` : ""
         }`,
         {
@@ -75,9 +70,12 @@ export const Task = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await axios.get("http://localhost:3001/api/projects", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_LOCAL_HOST}/api/projects`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setProjects(response.data);
       if (projectId) {
         setSelectedProjectId(projectId);
@@ -92,7 +90,7 @@ export const Task = () => {
     if (task.dailyPoints === 0) {
       return "Not Started";
     } else if (task.dailyPoints > 0 && task.dailyPoints < task.totalPoints) {
-      return "On Progress";
+      return "In Progress";
     } else if (task.dailyPoints >= task.totalPoints) {
       return "Completed";
     }
@@ -103,7 +101,7 @@ export const Task = () => {
     switch (status) {
       case "Not Started":
         return "default";
-      case "On Progress":
+      case "In Progress":
         return "warning";
       case "Completed":
         return "success";
@@ -134,7 +132,7 @@ export const Task = () => {
     try {
       if (editingTask) {
         await axios.patch(
-          `http://localhost:3001/api/tasks/${editingTask._id}`,
+          `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks/${editingTask._id}`,
           {
             title,
             description,
@@ -147,7 +145,7 @@ export const Task = () => {
         toast.success("Task updated successfully");
       } else {
         await axios.post(
-          "http://localhost:3001/api/tasks",
+          `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks`,
           { title, description, projectId: selectedProjectId, totalPoints },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -164,9 +162,12 @@ export const Task = () => {
 
   const handleDelete = async (taskId) => {
     try {
-      await axios.delete(`http://localhost:3001/api/tasks/${taskId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(
+        `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks/${taskId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       fetchTasks();
       toast.success("Task deleted successfully");
     } catch (error) {
@@ -198,7 +199,11 @@ export const Task = () => {
           </Button>
         </Grid>
         <Grid item>
-          <Chip label={`Total Tasks: ${tasks.length}`} color="primary" />
+          <Chip
+            label={`Total Tasks: ${tasks.length}`}
+            color="secondary"
+            variant="outlined"
+          />
         </Grid>
       </Grid>
 
@@ -272,6 +277,19 @@ export const Task = () => {
       <Grid container spacing={3}>
         {tasks.map((task) => (
           <Grid item xs={12} sm={6} md={4} key={task._id}>
+            <Box
+              sx={{
+                background: "#001D87",
+                color: "#FFFFFF",
+                borderTopLeftRadius: "5px",
+                borderTopRightRadius: "5px",
+                fontWeight: 600,
+                p: 1,
+              }}
+            >
+              Project:{" "}
+              {projects.find((p) => p._id === task.project)?.title || "N/A"}
+            </Box>
             <Card
               elevation={3}
               sx={{
@@ -280,7 +298,8 @@ export const Task = () => {
                 flexDirection: "column",
                 overflow: "hidden",
                 position: "relative",
-                borderRadius: "8px",
+                borderBottomLeftRadius: "5px",
+                borderBottomRightRadius: "5px",
                 border: "1px solid #BDBDBD",
                 boxShadow: "none",
               }}
@@ -300,7 +319,7 @@ export const Task = () => {
                   size={60}
                   thickness={4}
                   sx={{
-                    color: "success.main",
+                    color: "#08D504",
                     backgroundColor: "grey.200",
                     borderRadius: "50%",
                   }}
@@ -332,7 +351,17 @@ export const Task = () => {
                 <Typography variant="h6" gutterBottom>
                   {task.title}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  paragraph
+                  sx={{
+                    flexGrow: 1,
+                    pr: 9,
+                    maxHeight: "200px",
+                    overflowY: "auto",
+                  }}
+                >
                   {task.description}
                 </Typography>
                 <Box
@@ -346,11 +375,6 @@ export const Task = () => {
                     size="small"
                     sx={{ borderRadius: 1 }}
                   />
-                  <Typography variant="caption" color="text.secondary">
-                    Project:{" "}
-                    {projects.find((p) => p._id === task.project)?.title ||
-                      "N/A"}
-                  </Typography>
                 </Box>
               </CardContent>
               <CardActions
@@ -369,7 +393,7 @@ export const Task = () => {
                     size="small"
                     onClick={() => handleDelete(task._id)}
                   >
-                    <DeleteIcon />
+                    <DeleteIcon color="error" />
                   </IconButton>
                 </Box>
               </CardActions>

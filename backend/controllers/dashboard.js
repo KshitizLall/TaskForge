@@ -51,18 +51,20 @@ async function getDashboardOverview(req, res) {
       }
     });
 
-    // Number of tasks per project
+    // Number of tasks per project with project names
     const tasksPerProject = {};
     projects.forEach((project) => {
-      tasksPerProject[project._id] = tasks.filter((task) =>
+      const projectName = project.title;
+      tasksPerProject[projectName] = tasks.filter((task) =>
         task.project.equals(project._id)
       ).length;
     });
 
-    // Number of pending points per project
+    // Number of pending points per project with project names
     const pendingPointsPerProject = {};
     projects.forEach((project) => {
-      pendingPointsPerProject[project._id] = tasks
+      const projectName = project.title;
+      pendingPointsPerProject[projectName] = tasks
         .filter((task) => task.project.equals(project._id))
         .reduce((acc, task) => acc + task.calculatePendingPoints(), 0);
     });
@@ -86,6 +88,7 @@ async function getDashboardOverview(req, res) {
     const overview = {
       totalProjects: projects.length,
       totalTasks: tasks.length,
+      totalCompletedTasks,
       taskSummary,
       tasksPerProject,
       pendingPointsPerProject,

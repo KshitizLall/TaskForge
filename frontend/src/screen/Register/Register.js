@@ -12,9 +12,10 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import axios from "axios";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { registerNewUser } from "../../Redux/slice/userSlice";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -28,6 +29,8 @@ const Register = () => {
 
   const navigate = useNavigate();
   const theme = useTheme();
+  const dispatch = useDispatch();
+  const { status, error } = useSelector((state) => state.user);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,16 +40,18 @@ const Register = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      await axios.post("http://localhost:3001/api/users/signup", formData);
-      toast.success("User Created Successfully");
-      navigate("/login");
-    } catch (error) {
-      console.error("Error during sign up:", error);
-      toast.error("An error occurred");
-    }
+    dispatch(registerNewUser(formData))
+      .unwrap()
+      .then(() => {
+        toast.success("User Created Successfully");
+        navigate("/login");
+      })
+      .catch((error) => {
+        console.error("Error during sign up:", error);
+        toast.error("An error occurred");
+      });
   };
 
   const handleLoginRedirect = () => {
@@ -181,6 +186,7 @@ const Register = () => {
                     color="primary"
                     type="submit"
                     fullWidth
+                    disabled={status === "loading"}
                   >
                     Sign Up
                   </Button>

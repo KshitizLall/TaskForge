@@ -10,12 +10,10 @@ import {
   FormControlLabel,
   useTheme,
 } from "@mui/material";
-import axios from "axios";
 import { toast } from "sonner";
-import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { setUser } from "../../Redux/slice/userSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../../Redux/slice/userSlice";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -27,6 +25,7 @@ const Login = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const dispatch = useDispatch();
+  const { status, error } = useSelector((state) => state.user);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -36,29 +35,18 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      Cookies.remove("token"); // Clear the token cookie
-      const response = await axios.post(
-        "http://localhost:3001/api/users/login",
-        formData
-      );
-      toast.success("Login successful");
-      const expires = formData.rememberMe ? 7 : 1;
-      Cookies.set("token", response.data.token, { expires });
-
-      // Dispatch user data to the Redux store
-      const { first_name, last_name, role, gender } = response.data.user;
-      dispatch(
-        setUser({ firstName: first_name, lastName: last_name, role, gender })
-      );
-
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Error during login:", error);
-      toast.error("Invalid username or password");
-    }
+    dispatch(loginUser(formData))
+      .unwrap()
+      .then(() => {
+        toast.success("Login successful");
+        navigate("/dashboard");
+      })
+      .catch((error) => {
+        console.error("Error during login:", error);
+        toast.error("Invalid username or password");
+      });
   };
 
   const handleSignupRedirect = () => {
@@ -151,6 +139,7 @@ const Login = () => {
                     color="primary"
                     type="submit"
                     fullWidth
+                    disabled={status === "loading"}
                   >
                     Login
                   </Button>

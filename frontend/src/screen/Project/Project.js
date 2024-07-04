@@ -26,6 +26,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 export const Project = () => {
   const [open, setOpen] = useState(false);
@@ -45,14 +46,17 @@ export const Project = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await axios.get("http://localhost:3001/api/projects", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: {
-          userId: userId,
-        },
-      });
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_LOCAL_HOST}/api/projects`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            userId: userId,
+          },
+        }
+      );
       setProjects(response.data);
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -63,7 +67,7 @@ export const Project = () => {
   const fetchTasks = async (projectId) => {
     try {
       const response = await axios.get(
-        `http://localhost:3001/api/tasks?projectId=${projectId}`,
+        `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks?projectId=${projectId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -94,10 +98,10 @@ export const Project = () => {
 
   const handleCreate = async () => {
     if (editingProject) {
-      // Update project
+      // UPDATE PROJECT
       try {
         const response = await axios.patch(
-          `http://localhost:3001/api/projects/${editingProject._id}`,
+          `${process.env.REACT_APP_API_LOCAL_HOST}/api/projects/${editingProject._id}`,
           { title, description },
           {
             headers: {
@@ -117,10 +121,10 @@ export const Project = () => {
         setError("Failed to update project. Please try again.");
       }
     } else {
-      // Create new project
+      // CREATE NEW PROJECT
       try {
         const response = await axios.post(
-          "http://localhost:3001/api/projects",
+          `${process.env.REACT_APP_API_LOCAL_HOST}/api/projects`,
           { title, description, userId },
           {
             headers: {
@@ -140,11 +144,14 @@ export const Project = () => {
 
   const handleDelete = async (projectId) => {
     try {
-      await axios.delete(`http://localhost:3001/api/projects/${projectId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.delete(
+        `${process.env.REACT_APP_API_LOCAL_HOST}/api/projects/${projectId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setProjects(projects.filter((project) => project._id !== projectId));
       toast.success("Project deleted successfully");
     } catch (error) {
@@ -167,7 +174,7 @@ export const Project = () => {
 
   return (
     <div>
-      <Grid container spacing={2} alignItems="center">
+      <Grid container spacing={2} alignItems="center" mb={3}>
         <Grid item>
           <Button
             onClick={handleClickOpen}
@@ -178,40 +185,40 @@ export const Project = () => {
           </Button>
         </Grid>
         <Grid item>
-          <Chip label={`Total Projects: ${projects.length}`} color="primary" />
+          <Chip
+            label={`Total Projects: ${projects.length}`}
+            color="secondary"
+            variant="outlined"
+          />
         </Grid>
       </Grid>
-
-      <Dialog open={open} onClose={handleClose} sx={{ p: 5, m: 4 }}>
+      {/* CREATE OR EDIT PROJECT */}
+      <Dialog open={open} onClose={handleClose}>
         <DialogTitle>
           {editingProject ? "Edit Project" : "Create New Project"}
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ mb: 1 }}>
+          <DialogContentText>
             Please enter the details of the project.
           </DialogContentText>
           {error && <p style={{ color: "red" }}>{error}</p>}
           <TextField
             autoFocus
             margin="dense"
-            id="project-name"
             label="Project Name"
             type="text"
             fullWidth
-            variant="outlined"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
           <TextField
             margin="dense"
-            id="project-description"
             label="Project Description"
             type="text"
             fullWidth
-            variant="outlined"
+            multiline
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            multiline
           />
         </DialogContent>
         <DialogActions>
@@ -223,7 +230,7 @@ export const Project = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
+      {/* VIEW TASK UNDER PROJECTS */}
       <Dialog
         open={taskOpen}
         onClose={handleTaskClose}
@@ -232,11 +239,22 @@ export const Project = () => {
             width: "80%",
             maxHeight: "80vh",
           },
-          p: 5,
-          m: 4,
         }}
       >
-        <DialogTitle>Project Tasks</DialogTitle>
+        <DialogTitle>
+          <Typography
+            variant="body1"
+            sx={{
+              fontSize: "16px",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              fontWeight: 600,
+            }}
+          >
+            Project <ArrowForwardIcon /> Tasks
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           {tasks.map((task) => (
             <Box key={task._id} sx={{ mb: 2 }}>
@@ -262,60 +280,77 @@ export const Project = () => {
       <Grid container spacing={2} mt={2}>
         {projects.map((project) => (
           <Grid item xs={12} sm={6} md={4} key={project._id}>
+            <Box
+              sx={{
+                background: "#001D87",
+                color: "#FFFFFF",
+                borderTopLeftRadius: "5px",
+                borderTopRightRadius: "5px",
+                fontWeight: 600,
+                p: 1,
+              }}
+            >
+              Project: {project.title}
+            </Box>
             <Card
+              elevation={3}
               sx={{
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
-                borderRadius: "8px",
+                overflow: "hidden",
+                position: "relative",
+                borderBottomLeftRadius: "5px",
+                borderBottomRightRadius: "5px",
                 border: "1px solid #BDBDBD",
                 boxShadow: "none",
               }}
             >
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="h5" component="div">
-                  {project.title}
-                </Typography>
+              <CardContent sx={{ flexGrow: 1, pt: 2, pb: 1 }}>
                 <Typography
                   variant="body2"
                   color="text.secondary"
+                  paragraph
                   sx={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    height: "7.5em",
-                    lineHeight: "1.5em",
+                    flexGrow: 1,
+                    pr: 9,
+                    maxHeight: "200px",
                     overflowY: "auto",
                   }}
                 >
-                  {project.description}
+                  Description: {project.description}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   Created at: {new Date(project.createdAt).toLocaleString()}
                 </Typography>
               </CardContent>
-              <CardActions>
-                <Button
-                  size="small"
-                  color="primary"
-                  onClick={() => handleOpenTasks(project._id)}
-                  startIcon={<AssignmentIcon />}
-                >
-                  Tasks
-                </Button>
-                <IconButton
-                  size="small"
-                  color="error"
-                  onClick={() => handleDelete(project._id)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  color="primary"
-                  onClick={() => handleEdit(project)}
-                >
-                  <EditIcon sx={{ color: "#000000" }} />
-                </IconButton>
+              <CardActions
+                sx={{ justifyContent: "space-between", p: 2, pt: 0 }}
+              >
+                <Box>
+                  <Button
+                    size="small"
+                    color="primary"
+                    onClick={() => handleOpenTasks(project._id)}
+                    startIcon={<AssignmentIcon />}
+                  >
+                    View Tasks
+                  </Button>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={() => handleEdit(project)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => handleDelete(project._id)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
               </CardActions>
             </Card>
           </Grid>

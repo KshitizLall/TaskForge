@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   CircularProgress,
@@ -12,15 +12,14 @@ import {
 import {
   Assignment as AssignmentIcon,
   CheckCircle as CheckCircleIcon,
-  PlayCircleFilled as PlayCircleFilledIcon,
-  AccessTime as AccessTimeIcon,
+  List as ListIcon,
+  PendingActions as PendingActionsIcon,
   History as HistoryIcon,
 } from "@mui/icons-material";
-import axios from "axios";
-import Cookies from "js-cookie";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { Pie, Bar, Line } from "react-chartjs-2";
+import { fetchOverview } from "../../Redux/slice/userSlice";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -46,33 +45,34 @@ ChartJS.register(
 );
 
 const Dashboard = () => {
-  const [overview, setOverview] = useState(null);
-  const token = Cookies.get("token");
-  const { firstName, lastName, role } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const { overview, status, firstName, lastName, role, error } = useSelector(
+    (state) => state.user
+  );
 
   useEffect(() => {
-    const fetchOverview = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:3001/api/dashboard/overview",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setOverview(response.data);
-      } catch (error) {
+    dispatch(fetchOverview())
+      .unwrap()
+      .catch((error) => {
         console.error("Error fetching dashboard overview:", error);
         toast.error("Failed to fetch dashboard data");
-      }
-    };
+      });
+  }, [dispatch]);
 
-    fetchOverview();
-  }, [token]);
+  if (status === "loading") {
+    return <CircularProgress />;
+  }
+
+  if (status === "failed") {
+    return (
+      <Typography variant="h6" color="error">
+        {error}
+      </Typography>
+    );
+  }
 
   if (!overview) {
-    return <CircularProgress />;
+    return <Typography variant="h6">No data available</Typography>;
   }
 
   const pieData = {
@@ -95,7 +95,7 @@ const Dashboard = () => {
     labels: Object.keys(overview.tasksPerProject),
     datasets: [
       {
-        label: "Tasks per Project",
+        label: "Tasks under this Project",
         data: Object.values(overview.tasksPerProject),
         backgroundColor: "#2196f3",
       },
@@ -148,7 +148,7 @@ const Dashboard = () => {
           </Box>
         </Box>
         <Grid container spacing={3} sx={{ mt: 0.5 }}>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card
               sx={{
                 display: "flex",
@@ -168,7 +168,49 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                p: 2,
+                borderRadius: "8px",
+                border: "1px solid #BDBDBD",
+                boxShadow: "none",
+              }}
+            >
+              <Avatar sx={{ bgcolor: "#964CFF", mr: 2 }}>
+                <ListIcon />
+              </Avatar>
+              <CardContent>
+                <Typography variant="h6">Total Tasks</Typography>
+                <Typography variant="h4">{overview.totalTasks}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                p: 2,
+                borderRadius: "8px",
+                border: "1px solid #BDBDBD",
+                boxShadow: "none",
+              }}
+            >
+              <Avatar sx={{ bgcolor: "#ff9800", mr: 2 }}>
+                <PendingActionsIcon />
+              </Avatar>
+              <CardContent>
+                <Typography variant="h6">Tasks in Progress</Typography>
+                <Typography variant="h4">
+                  {overview.taskSummary.onProgress}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
             <Card
               sx={{
                 display: "flex",
@@ -183,29 +225,9 @@ const Dashboard = () => {
                 <CheckCircleIcon />
               </Avatar>
               <CardContent>
-                <Typography variant="h6">Total Tasks</Typography>
-                <Typography variant="h4">{overview.totalTasks}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                p: 2,
-                borderRadius: "8px",
-                border: "1px solid #BDBDBD",
-                boxShadow: "none",
-              }}
-            >
-              <Avatar sx={{ bgcolor: "#ff9800", mr: 2 }}>
-                <PlayCircleFilledIcon />
-              </Avatar>
-              <CardContent>
-                <Typography variant="h6">Tasks in Progress</Typography>
+                <Typography variant="h6">Tasks Completed</Typography>
                 <Typography variant="h4">
-                  {overview.taskSummary.onProgress}
+                  {overview.totalCompletedTasks}
                 </Typography>
               </CardContent>
             </Card>

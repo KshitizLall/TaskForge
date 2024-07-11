@@ -1,9 +1,10 @@
+import React, { useEffect, useState } from "react";
 import {
   Add as AddIcon,
-  Edit as EditIcon,
   Assignment as AssignmentIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
 } from "@mui/icons-material";
-import DeleteIcon from "@mui/icons-material/Delete";
 import {
   Button,
   Box,
@@ -18,15 +19,15 @@ import {
   DialogTitle,
   Grid,
   IconButton,
-  LinearProgress,
   TextField,
   Typography,
 } from "@mui/material";
 import axios from "axios";
 import Cookies from "js-cookie";
-import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import CircularProgressWithLabel from "../../component/CircularProgress/CircularProgressWithLabel";
+import ProjectCard from "../../component/Card/ProjectCard";
 
 export const Project = () => {
   const [open, setOpen] = useState(false);
@@ -256,19 +257,21 @@ export const Project = () => {
           </Typography>
         </DialogTitle>
         <DialogContent>
-          {tasks.map((task) => (
-            <Box key={task._id} sx={{ mb: 2 }}>
-              <Typography variant="subtitle1">{task.title}</Typography>
-              <LinearProgress
-                variant="determinate"
+          <Box
+            display="flex"
+            flexWrap="wrap"
+            gap="16px"
+            justifyContent="center"
+          >
+            {tasks.map((task) => (
+              <CircularProgressWithLabel
+                key={task._id}
                 value={(task.dailyPoints / task.totalPoints) * 100}
-                sx={{ mb: 1 }}
+                title={task.title}
+                color="#0037ff"
               />
-              <Typography variant="body2" color="text.secondary">
-                {task.description}
-              </Typography>
-            </Box>
-          ))}
+            ))}
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleTaskClose} color="primary" variant="outlined">
@@ -280,79 +283,12 @@ export const Project = () => {
       <Grid container spacing={2} mt={1}>
         {projects.map((project) => (
           <Grid item xs={12} sm={6} md={4} key={project._id}>
-            <Box
-              sx={{
-                background: "#001D87",
-                color: "#FFFFFF",
-                borderTopLeftRadius: "5px",
-                borderTopRightRadius: "5px",
-                fontWeight: 600,
-                p: 1,
-              }}
-            >
-              Project: {project.title}
-            </Box>
-            <Card
-              elevation={3}
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                overflow: "hidden",
-                position: "relative",
-                borderBottomLeftRadius: "5px",
-                borderBottomRightRadius: "5px",
-                border: "1px solid #BDBDBD",
-                boxShadow: "none",
-              }}
-            >
-              <CardContent sx={{ flexGrow: 1, pt: 2, pb: 1 }}>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  paragraph
-                  sx={{
-                    flexGrow: 1,
-                    pr: 9,
-                    maxHeight: "200px",
-                    overflowY: "auto",
-                  }}
-                >
-                  Description: {project.description}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Created at: {new Date(project.createdAt).toLocaleString()}
-                </Typography>
-              </CardContent>
-              <CardActions
-                sx={{ justifyContent: "space-between", p: 2, pt: 0 }}
-              >
-                <Box>
-                  <Button
-                    size="small"
-                    color="primary"
-                    onClick={() => handleOpenTasks(project._id)}
-                    startIcon={<AssignmentIcon />}
-                  >
-                    View Tasks
-                  </Button>
-                  <IconButton
-                    size="small"
-                    color="primary"
-                    onClick={() => handleEdit(project)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={() => handleDelete(project._id)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              </CardActions>
-            </Card>
+            <ProjectCard
+              project={project}
+              handleOpenTasks={handleOpenTasks}
+              handleEdit={handleEdit}
+              handleDelete={handleDelete}
+            />
           </Grid>
         ))}
       </Grid>

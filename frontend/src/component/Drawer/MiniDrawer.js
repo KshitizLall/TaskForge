@@ -1,45 +1,38 @@
-import * as React from "react";
 import {
-  styled,
-  useTheme,
-  ThemeProvider,
-  createTheme,
-} from "@mui/material/styles";
+  Assignment as AssignmentIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  Dashboard as DashboardIcon,
+  Logout as LogoutIcon,
+  Menu as MenuIcon,
+  Person as PersonIcon,
+  Task as TaskIcon,
+} from "@mui/icons-material";
 import {
-  Box,
-  Switch,
-  CssBaseline,
-  IconButton,
-  Typography,
   Avatar,
-  Drawer as MuiDrawer,
-  AppBar as MuiAppBar,
-  Toolbar,
-  List,
+  Box,
+  CssBaseline,
   Divider,
+  IconButton,
+  List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  AppBar as MuiAppBar,
+  Drawer as MuiDrawer,
+  Toolbar,
+  Typography,
 } from "@mui/material";
-import {
-  Menu as MenuIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  Dashboard as DashboardIcon,
-  Assignment as AssignmentIcon,
-  Task as TaskIcon,
-  Logout as LogoutIcon,
-  Person as PersonIcon,
-} from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { styled, useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
+import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleTheme } from "../../Redux/slice/themeSlice";
+import { useNavigate } from "react-router-dom";
 import Dashboard from "../../screen/Dashboard/Dashboard";
+import Profile from "../../screen/Profile/Profile";
 import { Project } from "../../screen/Project/Project";
 import { Task } from "../../screen/Task/Task";
-import Profile from "../../screen/Profile/Profile";
 
 const drawerWidth = 240;
 
@@ -109,12 +102,10 @@ const Drawer = styled(MuiDrawer, {
 
 export default function MiniDrawer() {
   const theme = useTheme();
-  const dispatch = useDispatch();
   const [open, setOpen] = React.useState(false);
   const [view, setView] = React.useState("dashboard");
   const navigate = useNavigate();
   const { firstName, lastName } = useSelector((state) => state.user);
-  const mode = useSelector((state) => state.theme.mode);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -155,7 +146,7 @@ export default function MiniDrawer() {
   const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 
   return (
-    <ThemeProvider theme={createTheme({ palette: { mode } })}>
+    <>
       <CssBaseline />
       <Box sx={{ display: "flex" }}>
         <AppBar position="fixed" open={open}>
@@ -192,11 +183,7 @@ export default function MiniDrawer() {
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center" }}>
-                <Switch
-                  checked={mode === "dark"}
-                  onChange={() => dispatch(toggleTheme())}
-                />
-                <Avatar>{initials}</Avatar>
+                {/* <Avatar>{initials}</Avatar> */}
               </Box>
             </Box>
           </Toolbar>
@@ -248,6 +235,6 @@ export default function MiniDrawer() {
           {renderView()}
         </Box>
       </Box>
-    </ThemeProvider>
+    </>
   );
 }

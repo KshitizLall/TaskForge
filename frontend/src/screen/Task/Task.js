@@ -224,7 +224,7 @@ export const Task = () => {
           console.error("Error updating task:", error);
           toast.error("Error updating task");
         }
-      }, 300);
+      }, 1000);
     }
   };
 
@@ -258,7 +258,7 @@ export const Task = () => {
           console.error("Error updating task:", error);
           toast.error("Error updating task");
         }
-      }, 300);
+      }, 1000);
     }
   };
 

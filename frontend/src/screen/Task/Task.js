@@ -1,4 +1,8 @@
-import { Add as AddIcon, Edit as EditIcon } from "@mui/icons-material";
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Remove as RemoveIcon,
+} from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
   Box,
@@ -186,6 +190,52 @@ export const Task = () => {
     setOpen(true);
   };
 
+  const handleIncrementPoints = async (taskId) => {
+    try {
+      const task = tasks.find((task) => task._id === taskId);
+      if (task) {
+        await axios.patch(
+          `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks/${taskId}`,
+          {
+            title: task.title,
+            description: task.description,
+            totalPoints: task.totalPoints,
+            dailyPoints: task.dailyPoints + 1,
+            projectId: task.project,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        fetchTasks();
+      }
+    } catch (error) {
+      console.error("Error updating task:", error);
+      toast.error("Error updating task");
+    }
+  };
+
+  const handleDecrementPoints = async (taskId) => {
+    try {
+      const task = tasks.find((task) => task._id === taskId);
+      if (task && task.dailyPoints > 0) {
+        await axios.patch(
+          `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks/${taskId}`,
+          {
+            title: task.title,
+            description: task.description,
+            totalPoints: task.totalPoints,
+            dailyPoints: task.dailyPoints - 1,
+            projectId: task.project,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        fetchTasks();
+      }
+    } catch (error) {
+      console.error("Error updating task:", error);
+      toast.error("Error updating task");
+    }
+  };
+
   return (
     <div>
       <Grid container spacing={2} alignItems="center" mb={3}>
@@ -276,7 +326,7 @@ export const Task = () => {
 
       <Grid container spacing={3}>
         {tasks.map((task) => (
-          <Grid item xs={12} sm={6} md={4} key={task._id}>
+          <Grid item xs={12} sm={6} md={4} key={task._id} sx={{ mb: 5 }}>
             <Box
               sx={{
                 background: "#001D87",
@@ -381,9 +431,21 @@ export const Task = () => {
                 sx={{ justifyContent: "space-between", p: 2, pt: 0 }}
               >
                 <Box display="flex" alignItems="center">
+                  <IconButton
+                    size="small"
+                    onClick={() => handleDecrementPoints(task._id)}
+                  >
+                    <RemoveIcon />
+                  </IconButton>
                   <Typography variant="body2" color="text.secondary">
                     {task.dailyPoints} / {task.totalPoints}
                   </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleIncrementPoints(task._id)}
+                  >
+                    <AddIcon />
+                  </IconButton>
                 </Box>
                 <Box>
                   <IconButton size="small" onClick={() => handleEdit(task)}>

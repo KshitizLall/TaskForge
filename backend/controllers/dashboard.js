@@ -2,17 +2,15 @@ const Project = require("../models/projectModel");
 const Task = require("../models/taskModel");
 const User = require("../models/userModel");
 
-// Get dashboard overview
 async function getDashboardOverview(req, res) {
   try {
     const userId = req.user.userId;
 
-    // Fetch the user's projects
     const projects = await Project.find({ user: userId });
 
-    // Fetch tasks and categorize by status
     const tasks = await Task.find({
       project: { $in: projects.map((p) => p._id) },
+      user: userId,
     });
 
     const taskSummary = {

@@ -136,65 +136,10 @@ async function deleteTaskById(req, res) {
   }
 }
 
-// Add daily points to a task
-async function addDailyPoints(req, res) {
-  try {
-    const taskId = req.params.id;
-    const { points } = req.body;
-
-    // Find the task by ID
-    const task = await Task.findById(taskId);
-    if (!task) {
-      return res.status(404).json({ message: "Task not found" });
-    }
-
-    // Update daily points (add or subtract)
-    task.dailyPoints = Math.max(
-      0,
-      Math.min(task.dailyPoints + points, task.totalPoints)
-    );
-
-    // Update task status
-    updateTaskStatus(task);
-
-    // Save the updated task
-    await task.save();
-
-    res
-      .status(200)
-      .json({ message: "Daily points updated successfully", task });
-  } catch (error) {
-    console.error("Error updating daily points:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-}
-
-// Get pending points for a task
-async function getPendingPoints(req, res) {
-  try {
-    const taskId = req.params.id;
-
-    // Find the task by ID
-    const task = await Task.findById(taskId);
-    if (!task) {
-      return res.status(404).json({ message: "Task not found" });
-    }
-
-    const pendingPoints = task.calculatePendingPoints();
-
-    res.status(200).json({ task, pendingPoints });
-  } catch (error) {
-    console.error("Error fetching pending points:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-}
-
 module.exports = {
   createTask,
   getAllTasks,
   getTaskById,
   updateTaskById,
   deleteTaskById,
-  addDailyPoints,
-  getPendingPoints,
 };

@@ -22,6 +22,9 @@ export const fetchDashboardOverview = async (token) => {
 };
 
 export const registerUser = async (formData) => {
-  const response = await axios.post(`${API_BASE_URL}/users/signup`, formData);
+  const response = await axios.post(
+    `${API_BASE_URL}/api/users/signup`,
+    formData
+  );
   return response.data;
 };

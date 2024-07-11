@@ -8,8 +8,6 @@ const {
   getTaskById,
   updateTaskById,
   deleteTaskById,
-  addDailyPoints,
-  getPendingPoints,
 } = require("../controllers/task");
 
 // Route to create a task (protected)
@@ -24,11 +22,5 @@ router
   .get(authenticateToken, getTaskById)
   .patch(authenticateToken, updateTaskById)
   .delete(authenticateToken, deleteTaskById);
-
-// Route to add daily points to a task (protected)
-router.patch("/:id/add-points", authenticateToken, addDailyPoints);
-
-// Route to get pending points for a task (protected)
-router.get("/:id/pending-points", authenticateToken, getPendingPoints);
 
 module.exports = router;

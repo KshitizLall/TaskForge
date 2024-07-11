@@ -24,7 +24,7 @@ const Register = () => {
     last_name: "",
     email: "",
     password: "",
-    gender: "male",
+    gender: "",
   });
 
   const navigate = useNavigate();

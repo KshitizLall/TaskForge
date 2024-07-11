@@ -28,7 +28,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import Cookies from "js-cookie";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -45,6 +45,9 @@ export const Task = () => {
   const [editingTask, setEditingTask] = useState(null);
   const token = Cookies.get("token");
   const { projectId } = useParams();
+
+  const incrementTimeout = useRef({});
+  const decrementTimeout = useRef({});
 
   useEffect(() => {
     fetchTasks();
@@ -190,49 +193,71 @@ export const Task = () => {
     setOpen(true);
   };
 
-  const handleIncrementPoints = async (taskId) => {
-    try {
-      const task = tasks.find((task) => task._id === taskId);
-      if (task) {
-        await axios.patch(
-          `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks/${taskId}`,
-          {
-            title: task.title,
-            description: task.description,
-            totalPoints: task.totalPoints,
-            dailyPoints: task.dailyPoints + 1,
-            projectId: task.project,
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        fetchTasks();
+  const handleIncrementPoints = (taskId) => {
+    const task = tasks.find((task) => task._id === taskId);
+    if (task) {
+      const updatedTasks = tasks.map((t) =>
+        t._id === taskId ? { ...t, dailyPoints: t.dailyPoints + 1 } : t
+      );
+      setTasks(updatedTasks);
+
+      if (incrementTimeout.current[taskId]) {
+        clearTimeout(incrementTimeout.current[taskId]);
       }
-    } catch (error) {
-      console.error("Error updating task:", error);
-      toast.error("Error updating task");
+
+      incrementTimeout.current[taskId] = setTimeout(async () => {
+        try {
+          await axios.patch(
+            `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks/${taskId}`,
+            {
+              title: task.title,
+              description: task.description,
+              totalPoints: task.totalPoints,
+              dailyPoints: task.dailyPoints + 1,
+              projectId: task.project,
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          fetchTasks();
+        } catch (error) {
+          console.error("Error updating task:", error);
+          toast.error("Error updating task");
+        }
+      }, 300);
     }
   };
 
-  const handleDecrementPoints = async (taskId) => {
-    try {
-      const task = tasks.find((task) => task._id === taskId);
-      if (task && task.dailyPoints > 0) {
-        await axios.patch(
-          `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks/${taskId}`,
-          {
-            title: task.title,
-            description: task.description,
-            totalPoints: task.totalPoints,
-            dailyPoints: task.dailyPoints - 1,
-            projectId: task.project,
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        fetchTasks();
+  const handleDecrementPoints = (taskId) => {
+    const task = tasks.find((task) => task._id === taskId);
+    if (task && task.dailyPoints > 0) {
+      const updatedTasks = tasks.map((t) =>
+        t._id === taskId ? { ...t, dailyPoints: t.dailyPoints - 1 } : t
+      );
+      setTasks(updatedTasks);
+
+      if (decrementTimeout.current[taskId]) {
+        clearTimeout(decrementTimeout.current[taskId]);
       }
-    } catch (error) {
-      console.error("Error updating task:", error);
-      toast.error("Error updating task");
+
+      decrementTimeout.current[taskId] = setTimeout(async () => {
+        try {
+          await axios.patch(
+            `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks/${taskId}`,
+            {
+              title: task.title,
+              description: task.description,
+              totalPoints: task.totalPoints,
+              dailyPoints: task.dailyPoints - 1,
+              projectId: task.project,
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          fetchTasks();
+        } catch (error) {
+          console.error("Error updating task:", error);
+          toast.error("Error updating task");
+        }
+      }, 300);
     }
   };
 

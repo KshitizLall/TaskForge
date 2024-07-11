@@ -276,7 +276,7 @@ export const Task = () => {
 
       <Grid container spacing={3}>
         {tasks.map((task) => (
-          <Grid item xs={12} sm={6} md={4} key={task._id}>
+          <Grid item xs={12} sm={6} md={4} key={task._id} sx={{ mb: 5 }}>
             <Box
               sx={{
                 background: "#001D87",

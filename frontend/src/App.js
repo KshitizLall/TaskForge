@@ -21,8 +21,8 @@ function App() {
 
   return (
     <>
-      <Provider store={store}>
-        <ThemeProvider theme={themeOptions}>
+      <ThemeProvider theme={themeOptions}>
+        <Provider store={store}>
           <Router>
             <Toaster position="top-right" richColors />
             <Routes>
@@ -44,8 +44,8 @@ function App() {
               />
             </Routes>
           </Router>
-        </ThemeProvider>
-      </Provider>
+        </Provider>
+      </ThemeProvider>
     </>
   );
 }

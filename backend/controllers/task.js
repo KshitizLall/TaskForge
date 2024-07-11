@@ -23,6 +23,7 @@ async function createTask(req, res) {
     }
 
     const { title, description, projectId, totalPoints } = req.body;
+    const userId = req.user.userId;
 
     // Check if project exists
     const project = await Project.findById(projectId);
@@ -35,6 +36,7 @@ async function createTask(req, res) {
       title,
       description,
       project: projectId,
+      user: userId, // Set user ID
       totalPoints,
       dailyPoints: 0, // Initialize dailyPoints to 0
       status: "Not Started", // Set initial status
@@ -52,11 +54,12 @@ async function createTask(req, res) {
   }
 }
 
-// Get all tasks
+// Get all tasks for the authenticated user
 async function getAllTasks(req, res) {
   try {
-    // Fetch all tasks from the database
-    const tasks = await Task.find();
+    const userId = req.user.userId;
+    // Fetch all tasks for the authenticated user from the database
+    const tasks = await Task.find({ user: userId });
     res.json(tasks);
   } catch (error) {
     console.error("Error fetching tasks:", error.message);
@@ -64,13 +67,14 @@ async function getAllTasks(req, res) {
   }
 }
 
-// Get task by ID
+// Get task by ID for the authenticated user
 async function getTaskById(req, res) {
   try {
+    const userId = req.user.userId;
     const taskId = req.params.id;
 
-    // Find the task by ID in the database
-    const task = await Task.findById(taskId);
+    // Find the task by ID and user ID in the database
+    const task = await Task.findOne({ _id: taskId, user: userId });
 
     // Check if task exists
     if (!task) {
@@ -84,14 +88,15 @@ async function getTaskById(req, res) {
   }
 }
 
-// Update task by ID
+// Update task by ID for the authenticated user
 async function updateTaskById(req, res) {
   try {
+    const userId = req.user.userId;
     const taskId = req.params.id;
     const { title, description, totalPoints, dailyPoints } = req.body;
 
-    // Find the task by ID in the database and update it
-    const task = await Task.findById(taskId);
+    // Find the task by ID and user ID in the database
+    const task = await Task.findOne({ _id: taskId, user: userId });
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }
@@ -116,13 +121,17 @@ async function updateTaskById(req, res) {
   }
 }
 
-// Delete task by ID
+// Delete task by ID for the authenticated user
 async function deleteTaskById(req, res) {
   try {
+    const userId = req.user.userId;
     const taskId = req.params.id;
 
-    // Find the task by ID in the database and delete it
-    const deletedTask = await Task.findByIdAndDelete(taskId);
+    // Find the task by ID and user ID in the database and delete it
+    const deletedTask = await Task.findOneAndDelete({
+      _id: taskId,
+      user: userId,
+    });
 
     // Check if task exists
     if (!deletedTask) {

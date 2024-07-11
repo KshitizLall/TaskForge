@@ -94,7 +94,11 @@ const Register = () => {
       >
         <Container maxWidth="xs">
           <Box
-            sx={{ border: "0.5px solid #A9A9A9", p: 5, borderRadius: "5px" }}
+            sx={{
+              border: "0.5px solid #A9A9A9",
+              p: 5,
+              borderRadius: theme.shape.borderRadius,
+            }}
           >
             <Box textAlign="center" mb={2}>
               <Typography variant="h4" component="h1">

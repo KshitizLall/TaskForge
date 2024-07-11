@@ -31,6 +31,7 @@ import Cookies from "js-cookie";
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
+import TaskCard from "../../component/Card/TaskCard";
 
 export const Task = () => {
   const [open, setOpen] = useState(false);
@@ -285,10 +286,25 @@ export const Task = () => {
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>
           {editingTask ? "Edit Task" : "Create New Task"}
+          <DialogContentText>Please enter the task details.</DialogContentText>
+          {error && <Typography color="error">{error}</Typography>}
         </DialogTitle>
         <DialogContent>
-          <DialogContentText>Please enter the task details.</DialogContentText>
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          <FormControl fullWidth margin="dense" variant="outlined">
+            <InputLabel shrink>Project</InputLabel>
+            <Select
+              value={selectedProjectId}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              label="Project"
+            >
+              {projects.map((project) => (
+                <MenuItem key={project._id} value={project._id}>
+                  {project.title}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           <TextField
             autoFocus
             margin="dense"
@@ -297,6 +313,7 @@ export const Task = () => {
             fullWidth
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            variant="outlined"
           />
           <TextField
             margin="dense"
@@ -306,6 +323,7 @@ export const Task = () => {
             multiline
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            variant="outlined"
           />
           <TextField
             margin="dense"
@@ -314,6 +332,7 @@ export const Task = () => {
             fullWidth
             value={totalPoints}
             onChange={(e) => setTotalPoints(Number(e.target.value))}
+            variant="outlined"
           />
           {editingTask && (
             <TextField
@@ -323,21 +342,9 @@ export const Task = () => {
               fullWidth
               value={dailyPoints}
               onChange={(e) => setDailyPoints(Number(e.target.value))}
+              variant="outlined"
             />
           )}
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Project</InputLabel>
-            <Select
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-            >
-              {projects.map((project) => (
-                <MenuItem key={project._id} value={project._id}>
-                  {project.title}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
@@ -351,140 +358,16 @@ export const Task = () => {
 
       <Grid container spacing={3}>
         {tasks.map((task) => (
-          <Grid item xs={12} sm={6} md={4} key={task._id} sx={{ mb: 5 }}>
-            <Box
-              sx={{
-                background: "#001D87",
-                color: "#FFFFFF",
-                borderTopLeftRadius: "5px",
-                borderTopRightRadius: "5px",
-                fontWeight: 600,
-                p: 1,
-              }}
-            >
-              Project:{" "}
-              {projects.find((p) => p._id === task.project)?.title || "N/A"}
-            </Box>
-            <Card
-              elevation={3}
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                overflow: "hidden",
-                position: "relative",
-                borderBottomLeftRadius: "5px",
-                borderBottomRightRadius: "5px",
-                border: "1px solid #BDBDBD",
-                boxShadow: "none",
-              }}
-            >
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 16,
-                  right: 16,
-                  width: 60,
-                  height: 60,
-                }}
-              >
-                <CircularProgress
-                  variant="determinate"
-                  value={(task.dailyPoints / task.totalPoints) * 100}
-                  size={60}
-                  thickness={4}
-                  sx={{
-                    color: "#08D504",
-                    backgroundColor: "grey.200",
-                    borderRadius: "50%",
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    bottom: 0,
-                    right: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    component="div"
-                    color="text.secondary"
-                  >
-                    {`${Math.round(
-                      (task.dailyPoints / task.totalPoints) * 100
-                    )}%`}
-                  </Typography>
-                </Box>
-              </Box>
-              <CardContent sx={{ flexGrow: 1, pt: 2, pb: 1 }}>
-                <Typography variant="h6" gutterBottom>
-                  {task.title}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  paragraph
-                  sx={{
-                    flexGrow: 1,
-                    pr: 9,
-                    maxHeight: "200px",
-                    overflowY: "auto",
-                  }}
-                >
-                  {task.description}
-                </Typography>
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
-                  <Chip
-                    label={task.status}
-                    color={getChipColor(task.status)}
-                    size="small"
-                    sx={{ borderRadius: 1 }}
-                  />
-                </Box>
-              </CardContent>
-              <CardActions
-                sx={{ justifyContent: "space-between", p: 2, pt: 0 }}
-              >
-                <Box display="flex" alignItems="center">
-                  <IconButton
-                    size="small"
-                    onClick={() => handleDecrementPoints(task._id)}
-                  >
-                    <RemoveIcon />
-                  </IconButton>
-                  <Typography variant="body2" color="text.secondary">
-                    {task.dailyPoints} / {task.totalPoints}
-                  </Typography>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleIncrementPoints(task._id)}
-                  >
-                    <AddIcon />
-                  </IconButton>
-                </Box>
-                <Box>
-                  <IconButton size="small" onClick={() => handleEdit(task)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleDelete(task._id)}
-                  >
-                    <DeleteIcon color="error" />
-                  </IconButton>
-                </Box>
-              </CardActions>
-            </Card>
+          <Grid item xs={12} sm={6} md={4} key={task._id}>
+            <TaskCard
+              key={task._id}
+              task={task}
+              projects={projects}
+              handleDecrementPoints={handleDecrementPoints}
+              handleIncrementPoints={handleIncrementPoints}
+              handleEdit={handleEdit}
+              handleDelete={handleDelete}
+            />
           </Grid>
         ))}
       </Grid>

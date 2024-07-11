@@ -24,12 +24,7 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import {
-  ThemeProvider,
-  createTheme,
-  styled,
-  useTheme,
-} from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -188,7 +183,7 @@ export default function MiniDrawer() {
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center" }}>
-                <Avatar>{initials}</Avatar>
+                {/* <Avatar>{initials}</Avatar> */}
               </Box>
             </Box>
           </Toolbar>

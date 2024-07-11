@@ -174,7 +174,7 @@ export const Project = () => {
 
   return (
     <div>
-      <Grid container spacing={2} alignItems="center" mb={3}>
+      <Grid container spacing={2} alignItems="center">
         <Grid item>
           <Button
             onClick={handleClickOpen}
@@ -277,7 +277,7 @@ export const Project = () => {
         </DialogActions>
       </Dialog>
 
-      <Grid container spacing={2} mt={2}>
+      <Grid container spacing={2} mt={1}>
         {projects.map((project) => (
           <Grid item xs={12} sm={6} md={4} key={project._id}>
             <Box

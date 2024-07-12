@@ -74,13 +74,16 @@ const Register = () => {
           alignItems: "center",
           p: 4,
         }}
-        className="register_background_pattern"
+        className="login_background_pattern"
       >
-        <Typography variant="h6" sx={{ fontSize: "72px" }}>☺️</Typography>
-        <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
-          Welcome to Task Forge
+        <Typography variant="h6" sx={{ fontSize: "72px" }}>😎</Typography>
+        <Typography variant="h6" gutterBottom >
+          Register yourself into
         </Typography>
-        <Typography variant="h6">Your task management solution</Typography>
+        <Typography variant="h3" gutterBottom sx={{ fontSize: "4rem", fontWeight: 800 }}>
+          Task Forge
+        </Typography>
+        <Typography variant="h6">Get Started with us</Typography>
       </Grid>
 
       <Grid

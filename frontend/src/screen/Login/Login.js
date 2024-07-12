@@ -71,9 +71,12 @@ const Login = () => {
         }}
         className="login_background_pattern"
       >
-        <Typography variant="h6" sx={{ fontSize: "72px" }}>☺️</Typography>
-        <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
-          Welcome to Task Forge
+        <Typography variant="h6" sx={{ fontSize: "72px" }}>😄</Typography>
+        <Typography variant="h6" gutterBottom >
+          Login to continue,
+        </Typography>
+        <Typography variant="h3" gutterBottom sx={{ fontSize: "4rem", fontWeight: 800 }}>
+          Task Forge
         </Typography>
         <Typography variant="h6">Your task management solution</Typography>
       </Grid>

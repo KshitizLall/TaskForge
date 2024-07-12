@@ -1,16 +1,10 @@
-import React, { useEffect, useState } from "react";
 import {
   Add as AddIcon,
-  Assignment as AssignmentIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
 } from "@mui/icons-material";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import {
-  Button,
   Box,
-  Card,
-  CardActions,
-  CardContent,
+  Button,
   Chip,
   Dialog,
   DialogActions,
@@ -18,16 +12,16 @@ import {
   DialogContentText,
   DialogTitle,
   Grid,
-  IconButton,
   TextField,
   Typography,
+  Skeleton,
 } from "@mui/material";
 import axios from "axios";
 import Cookies from "js-cookie";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import CircularProgressWithLabel from "../../component/CircularProgress/CircularProgressWithLabel";
 import ProjectCard from "../../component/Card/ProjectCard";
+import CircularProgressWithLabel from "../../component/CircularProgress/CircularProgressWithLabel";
 
 export const Project = () => {
   const [open, setOpen] = useState(false);
@@ -39,11 +33,18 @@ export const Project = () => {
   const [error, setError] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
   const [currentProjectId, setCurrentProjectId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const token = Cookies.get("token");
   const userId = Cookies.get("userId");
 
   useEffect(() => {
     fetchProjects();
+
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, [token, userId]);
 
   const fetchProjects = async () => {
@@ -174,6 +175,28 @@ export const Project = () => {
     await fetchTasks(projectId);
     setTaskOpen(true);
   };
+
+  if (isLoading) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item>
+            <Skeleton variant="rectangular" width={150} height={40} />
+          </Grid>
+          <Grid item>
+            <Skeleton variant="rectangular" width={150} height={40} />
+          </Grid>
+        </Grid>
+        <Grid container spacing={2} mt={2}>
+          {Array.from(new Array(6)).map((_, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Skeleton variant="rectangular" width="100%" height={200} />
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    );
+  }
 
   return (
     <div>

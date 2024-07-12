@@ -1,13 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
-  CircularProgress,
   Grid,
   Typography,
   Card,
   CardContent,
   Avatar,
   Chip,
+  Skeleton,
 } from "@mui/material";
 import {
   Assignment as AssignmentIcon,
@@ -49,6 +49,8 @@ const Dashboard = () => {
     (state) => state.user
   );
 
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     dispatch(fetchOverview())
       .unwrap()
@@ -56,10 +58,77 @@ const Dashboard = () => {
         console.error("Error fetching dashboard overview:", error);
         toast.error("Failed to fetch dashboard data");
       });
+
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, [dispatch]);
 
-  if (status === "loading") {
-    return <CircularProgress />;
+  if (isLoading || status === "loading") {
+    return (
+      <Box
+        sx={{ display: "flex", flexDirection: "column", height: "100vh", p: 2 }}
+      >
+        <Skeleton variant="text" width={300} height={40} />
+        <Skeleton variant="text" width={200} height={30} />
+        <Grid container spacing={3}>
+          {Array.from(new Array(4)).map((_, index) => (
+            <Grid item xs={12} sm={6} md={3} key={index}>
+              <Card
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  p: 2,
+                  borderRadius: "8px",
+                  border: "1px solid #BDBDBD",
+                  boxShadow: "none",
+                }}
+              >
+                <Skeleton variant="circular" width={40} height={40} />
+                <CardContent>
+                  <Skeleton variant="text" width={140} height={30} />
+                  <Skeleton variant="text" width={60} height={40} />
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+          {Array.from(new Array(2)).map((_, index) => (
+            <Grid item xs={12} sm={12} md={6} key={index}>
+              <Card
+                sx={{
+                  p: 2,
+                  borderRadius: "8px",
+                  border: "1px solid #BDBDBD",
+                  boxShadow: "none",
+                }}
+              >
+                <Skeleton variant="text" width={160} height={30} />
+                <Skeleton variant="rectangular" height={300} />
+              </Card>
+            </Grid>
+          ))}
+          {Array.from(new Array(2)).map((_, index) => (
+            <Grid item xs={12} sm={12} md={6} key={index}>
+              <Card
+                sx={{
+                  p: 2,
+                  mb: 2,
+                  borderRadius: "8px",
+                  border: "1px solid #BDBDBD",
+                  boxShadow: "none",
+                  height: 400,
+                }}
+              >
+                <Skeleton variant="text" width={160} height={30} />
+                <Skeleton variant="rectangular" height={300} />
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    );
   }
 
   if (status === "failed") {

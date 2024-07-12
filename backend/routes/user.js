@@ -21,14 +21,14 @@ router.post("/signup", handleSignUp);
 // Route to get all users and create a new user (protected)
 router
   .route("/")
-  .get(authenticateToken, handleGetAllUsers)
-  .post(authenticateToken, handleCreateUser);
+  .get(handleGetAllUsers)
+  .post(handleCreateUser);
 
 // Route to get, update, and delete a user by ID (protected)
 router
   .route("/:userId")
-  .get(authenticateToken, handleGetUserById)
-  .patch(authenticateToken, handleUpdateUserById)
-  .delete(authenticateToken, handleDeleteUserById);
+  .get(handleGetUserById)
+  .patch(handleUpdateUserById)
+  .delete(handleDeleteUserById);
 
 module.exports = router;

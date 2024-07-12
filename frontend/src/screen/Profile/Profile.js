@@ -1,7 +1,12 @@
-import React from "react";
+import React from 'react';
+import ComingSoon from './../Exceptions/ComingSoon';
 
 const Profile = () => {
-  return <div>Profile</div>;
-};
+  return (
+    <div>
+      <ComingSoon />
+    </div>
+  )
+}
 
-export default Profile;
+export default Profile

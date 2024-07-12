@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -12,9 +11,10 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { registerNewUser } from "../../Redux/slice/userSlice";
 import "./Register.css";
 

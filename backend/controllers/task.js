@@ -58,8 +58,16 @@ async function createTask(req, res) {
 async function getAllTasks(req, res) {
   try {
     const userId = req.user.userId;
-    // Fetch all tasks for the authenticated user from the database
-    const tasks = await Task.find({ user: userId });
+    const projectId = req.query.projectId;
+
+    // Build the query object
+    const query = { user: userId };
+    if (projectId) {
+      query.project = projectId;
+    }
+
+    // Fetch all tasks (or tasks under a specific project) for the authenticated user from the database
+    const tasks = await Task.find(query);
     res.json(tasks);
   } catch (error) {
     console.error("Error fetching tasks:", error.message);

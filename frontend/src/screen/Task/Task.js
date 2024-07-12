@@ -1,28 +1,18 @@
-import {
-  Add as AddIcon
-} from "@mui/icons-material";
+// Task.jsx
+import { Add as AddIcon } from "@mui/icons-material";
 import {
   Button,
   Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-  Typography
+  Grid
 } from "@mui/material";
 import axios from "axios";
 import Cookies from "js-cookie";
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
-import TaskCard from "../../component/Card/TaskCard";
+import TaskDialog from "../../component/Task/TaskDialog";
+import TaskList from "../../component/Task/TaskList";
+import TaskSkeleton from "../../component/Task/TaskSkeleton";
 
 export const Task = () => {
   const [open, setOpen] = useState(false);
@@ -35,6 +25,7 @@ export const Task = () => {
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [error, setError] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const token = Cookies.get("token");
   const { projectId } = useParams();
 
@@ -44,16 +35,19 @@ export const Task = () => {
   useEffect(() => {
     fetchTasks();
     fetchProjects();
+
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, [projectId]);
 
   const fetchTasks = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks${projectId ? `?projectId=${projectId}` : ""
-        }`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks${projectId ? `?projectId=${projectId}` : ""}`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       const updatedTasks = response.data.map((task) => ({
         ...task,
@@ -70,9 +64,7 @@ export const Task = () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_API_LOCAL_HOST}/api/projects`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setProjects(response.data);
       if (projectId) {
@@ -93,19 +85,6 @@ export const Task = () => {
       return "Completed";
     }
     return "";
-  };
-
-  const getChipColor = (status) => {
-    switch (status) {
-      case "Not Started":
-        return "default";
-      case "In Progress":
-        return "warning";
-      case "Completed":
-        return "success";
-      default:
-        return "default";
-    }
   };
 
   const handleClickOpen = () => {
@@ -131,13 +110,7 @@ export const Task = () => {
       if (editingTask) {
         await axios.patch(
           `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks/${editingTask._id}`,
-          {
-            title,
-            description,
-            totalPoints,
-            dailyPoints,
-            projectId: selectedProjectId,
-          },
+          { title, description, totalPoints, dailyPoints, projectId: selectedProjectId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success("Task updated successfully");
@@ -162,9 +135,7 @@ export const Task = () => {
     try {
       await axios.delete(
         `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks/${taskId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchTasks();
       toast.success("Task deleted successfully");
@@ -200,13 +171,7 @@ export const Task = () => {
         try {
           await axios.patch(
             `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks/${taskId}`,
-            {
-              title: task.title,
-              description: task.description,
-              totalPoints: task.totalPoints,
-              dailyPoints: task.dailyPoints + 1,
-              projectId: task.project,
-            },
+            { title: task.title, description: task.description, totalPoints: task.totalPoints, dailyPoints: task.dailyPoints + 1, projectId: task.project },
             { headers: { Authorization: `Bearer ${token}` } }
           );
           fetchTasks();
@@ -234,13 +199,7 @@ export const Task = () => {
         try {
           await axios.patch(
             `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks/${taskId}`,
-            {
-              title: task.title,
-              description: task.description,
-              totalPoints: task.totalPoints,
-              dailyPoints: task.dailyPoints - 1,
-              projectId: task.project,
-            },
+            { title: task.title, description: task.description, totalPoints: task.totalPoints, dailyPoints: task.dailyPoints - 1, projectId: task.project },
             { headers: { Authorization: `Bearer ${token}` } }
           );
           fetchTasks();
@@ -251,6 +210,10 @@ export const Task = () => {
       }, 1000);
     }
   };
+
+  if (isLoading) {
+    return <TaskSkeleton />;
+  }
 
   return (
     <div>
@@ -273,94 +236,33 @@ export const Task = () => {
         </Grid>
       </Grid>
 
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>
-          {editingTask ? "Edit Task" : "Create New Task"}
-          <DialogContentText>Please enter the task details.</DialogContentText>
-          {error && <Typography color="error">{error}</Typography>}
-        </DialogTitle>
-        <DialogContent>
-          <FormControl fullWidth margin="dense" variant="outlined">
-            <InputLabel shrink>Project</InputLabel>
-            <Select
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-              label="Project"
-            >
-              {projects.map((project) => (
-                <MenuItem key={project._id} value={project._id}>
-                  {project.title}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+      <TaskDialog
+        open={open}
+        handleClose={handleClose}
+        handleCreate={handleCreate}
+        title={title}
+        setTitle={setTitle}
+        description={description}
+        setDescription={setDescription}
+        totalPoints={totalPoints}
+        setTotalPoints={setTotalPoints}
+        dailyPoints={dailyPoints}
+        setDailyPoints={setDailyPoints}
+        selectedProjectId={selectedProjectId}
+        setSelectedProjectId={setSelectedProjectId}
+        projects={projects}
+        editingTask={editingTask}
+        error={error}
+      />
 
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Task Name"
-            type="text"
-            fullWidth
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            variant="outlined"
-          />
-          <TextField
-            margin="dense"
-            label="Task Description"
-            type="text"
-            fullWidth
-            multiline
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            variant="outlined"
-          />
-          <TextField
-            margin="dense"
-            label="Total Points"
-            type="number"
-            fullWidth
-            value={totalPoints}
-            onChange={(e) => setTotalPoints(Number(e.target.value))}
-            variant="outlined"
-          />
-          {editingTask && (
-            <TextField
-              margin="dense"
-              label="Daily Points"
-              type="number"
-              fullWidth
-              value={dailyPoints}
-              onChange={(e) => setDailyPoints(Number(e.target.value))}
-              variant="outlined"
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleCreate} color="primary" variant="contained">
-            {editingTask ? "Update" : "Create"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Grid container spacing={3}>
-        {tasks.map((task) => (
-          <Grid item xs={12} sm={6} md={4} key={task._id}>
-            <TaskCard
-              key={task._id}
-              task={task}
-              projects={projects}
-              handleDecrementPoints={handleDecrementPoints}
-              handleIncrementPoints={handleIncrementPoints}
-              handleEdit={handleEdit}
-              handleDelete={handleDelete}
-            />
-          </Grid>
-        ))}
-      </Grid>
+      <TaskList
+        tasks={tasks}
+        projects={projects}
+        handleDecrementPoints={handleDecrementPoints}
+        handleIncrementPoints={handleIncrementPoints}
+        handleEdit={handleEdit}
+        handleDelete={handleDelete}
+      />
     </div>
   );
 };

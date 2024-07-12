@@ -1,4 +1,36 @@
 import React from "react";
+import { Box, Typography, Tooltip } from "@mui/material";
+import { styled } from "@mui/system";
+
+const CircleSvg = styled('svg')({
+  position: 'relative',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginBottom: '8px',
+});
+
+const Circle = styled('circle')({
+  transition: 'stroke-dashoffset 0.35s',
+  transform: 'rotate(-90deg)',
+  transformOrigin: '50% 50%',
+});
+
+const Card = styled(Box)(({ theme }) => ({
+  backgroundColor: "#001D87",
+  padding: "16px",
+  borderRadius: "8px",
+  color: "#FFFFFF",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  width: "150px", // adjust as necessary
+}));
+
+const PercentageText = styled(Typography)({
+  color: "white",
+  fontWeight: 700,
+});
 
 const CircularProgressWithLabel = ({ value, title, color = "#0037ff" }) => {
   const circleSize = 60;
@@ -8,83 +40,54 @@ const CircularProgressWithLabel = ({ value, title, color = "#0037ff" }) => {
   const offset = circumference - (value / 100) * circumference;
 
   return (
-    <div style={styles.card}>
-      <div
-        style={{
-          position: "relative",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          marginBottom: "8px",
-        }}
-      >
-        <svg width={circleSize} height={circleSize}>
-          <circle
-            stroke="#d3d3d3"
-            fill="transparent"
-            strokeWidth={strokeWidth}
-            r={radius}
-            cx={circleSize / 2}
-            cy={circleSize / 2}
-          />
-          <circle
-            stroke={color}
-            fill="transparent"
-            strokeWidth={strokeWidth}
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            r={radius}
-            cx={circleSize / 2}
-            cy={circleSize / 2}
-            style={{
-              transition: "stroke-dashoffset 0.35s",
-              transform: "rotate(-90deg)",
-              transformOrigin: "50% 50%",
-            }}
-          />
-        </svg>
-        <div
-          style={{
-            position: "absolute",
+    <Tooltip title={title}>
+      <Card>
+        <Box
+          sx={{
+            position: "relative",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            marginBottom: "8px",
           }}
         >
-          <span style={styles.percentageText}>{`${Math.round(value)}%`}</span>
-        </div>
-      </div>
-      <span style={styles.title} title={title}>
-        {title}
-      </span>
-    </div>
+          <CircleSvg width={circleSize} height={circleSize}>
+            <Circle
+              stroke="#d3d3d3"
+              fill="transparent"
+              strokeWidth={strokeWidth}
+              r={radius}
+              cx={circleSize / 2}
+              cy={circleSize / 2}
+            />
+            <Circle
+              stroke={color}
+              fill="transparent"
+              strokeWidth={strokeWidth}
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              r={radius}
+              cx={circleSize / 2}
+              cy={circleSize / 2}
+            />
+          </CircleSvg>
+          <Box
+            sx={{
+              position: "absolute",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <PercentageText variant="caption">{`${Math.round(value)}%`}</PercentageText>
+          </Box>
+        </Box>
+        <Typography variant="body2" title={title} sx={{ textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
+          {title}
+        </Typography>
+      </Card>
+    </Tooltip>
   );
-};
-
-const styles = {
-  card: {
-    backgroundColor: "#001D87",
-    padding: "16px",
-    borderRadius: "8px",
-    color: "#FFFFFF",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    width: "150px", // adjust as necessary
-  },
-  percentageText: {
-    color: "white",
-    fontWeight: 700,
-  },
-  title: {
-    color: "white",
-    fontWeight: 700,
-    textAlign: "center",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    maxWidth: "100%",
-  },
 };
 
 export default CircularProgressWithLabel;

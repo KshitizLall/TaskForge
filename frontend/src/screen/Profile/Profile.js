@@ -1,8 +1,11 @@
-import React from 'react'
+import React from 'react';
+import ComingSoon from './../Exceptions/ComingSoon';
 
 const Profile = () => {
   return (
-    <div>Profile</div>
+    <div>
+      <ComingSoon />
+    </div>
   )
 }
 

@@ -38,6 +38,7 @@ export const Project = () => {
   const [tasks, setTasks] = useState([]);
   const [error, setError] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
+  const [currentProjectId, setCurrentProjectId] = useState(null);
   const token = Cookies.get("token");
   const userId = Cookies.get("userId");
 
@@ -169,6 +170,7 @@ export const Project = () => {
   };
 
   const handleOpenTasks = async (projectId) => {
+    setCurrentProjectId(projectId);
     await fetchTasks(projectId);
     setTaskOpen(true);
   };

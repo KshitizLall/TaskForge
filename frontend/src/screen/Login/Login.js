@@ -1,18 +1,18 @@
-import React, { useState } from "react";
 import {
-  TextField,
-  Button,
-  Grid,
-  Typography,
   Box,
-  Container,
+  Button,
   Checkbox,
+  Container,
   FormControlLabel,
+  Grid,
+  TextField,
+  Typography,
   useTheme,
 } from "@mui/material";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { loginUser } from "../../Redux/slice/userSlice";
 import "./Login.css";
 

@@ -1,16 +1,10 @@
-import React, { useEffect, useState } from "react";
 import {
   Add as AddIcon,
-  Assignment as AssignmentIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
 } from "@mui/icons-material";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import {
-  Button,
   Box,
-  Card,
-  CardActions,
-  CardContent,
+  Button,
   Chip,
   Dialog,
   DialogActions,
@@ -18,16 +12,15 @@ import {
   DialogContentText,
   DialogTitle,
   Grid,
-  IconButton,
   TextField,
   Typography,
 } from "@mui/material";
 import axios from "axios";
 import Cookies from "js-cookie";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import CircularProgressWithLabel from "../../component/CircularProgress/CircularProgressWithLabel";
 import ProjectCard from "../../component/Card/ProjectCard";
+import CircularProgressWithLabel from "../../component/CircularProgress/CircularProgressWithLabel";
 
 export const Project = () => {
   const [open, setOpen] = useState(false);

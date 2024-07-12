@@ -64,7 +64,9 @@ async function handleLogin(req, res) {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "2h",
     });
+    console.log("Generated token:", token);
     return res.json({ message: "Login successful", token, user });
+
   } catch (error) {
     console.error("Error during login:", error);
     return res.status(500).json({ message: "Internal Server Error" });

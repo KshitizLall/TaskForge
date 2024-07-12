@@ -1,17 +1,9 @@
 import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Remove as RemoveIcon,
+  Add as AddIcon
 } from "@mui/icons-material";
-import DeleteIcon from "@mui/icons-material/Delete";
 import {
-  Box,
   Button,
-  Card,
-  CardActions,
-  CardContent,
   Chip,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -19,16 +11,15 @@ import {
   DialogTitle,
   FormControl,
   Grid,
-  IconButton,
   InputLabel,
   MenuItem,
   Select,
   TextField,
-  Typography,
+  Typography
 } from "@mui/material";
 import axios from "axios";
 import Cookies from "js-cookie";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import TaskCard from "../../component/Card/TaskCard";
@@ -58,8 +49,7 @@ export const Task = () => {
   const fetchTasks = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks${
-          projectId ? `?projectId=${projectId}` : ""
+        `${process.env.REACT_APP_API_LOCAL_HOST}/api/tasks${projectId ? `?projectId=${projectId}` : ""
         }`,
         {
           headers: { Authorization: `Bearer ${token}` },

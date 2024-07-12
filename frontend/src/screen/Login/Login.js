@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../../Redux/slice/userSlice";
+import "./Login.css";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -68,9 +69,10 @@ const Login = () => {
           alignItems: "center",
           p: 4,
         }}
+        className="login_background_pattern"
       >
-        <Typography variant="h6">☺️</Typography>
-        <Typography variant="h3" component="h1" gutterBottom>
+        <Typography variant="h6" sx={{ fontSize: "72px" }}>☺️</Typography>
+        <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
           Welcome to Task Forge
         </Typography>
         <Typography variant="h6">Your task management solution</Typography>
@@ -92,11 +94,10 @@ const Login = () => {
             sx={{
               border: "0.5px solid #A9A9A9",
               p: 5,
-              borderRadius: theme.shape.borderRadius,
             }}
           >
             <Box textAlign="center" mb={2}>
-              <Typography variant="h4" component="h1">
+              <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
                 Login
               </Typography>
             </Box>

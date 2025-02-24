@@ -1,5 +1,0 @@
-.register_background_pattern {
-  background-color: #8585ff;
-  opacity: 1;
-  background-image: repeating-radial-gradient(circle at 0 0, transparent 0, #8585ff 10px), repeating-linear-gradient(#0b17ff55, #0b17ff);
-}

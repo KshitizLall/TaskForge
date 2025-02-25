@@ -1,5 +1,37 @@
+/* app.css */
+
+/* Base font variables */
+:root {
+  /* Font families */
+  --font-primary: 'DM Sans', system-ui, sans-serif;
+  --font-secondary: 'Montserrat', system-ui, sans-serif;
+  --font-tertiary: 'Rubik', system-ui, sans-serif;
+  --font-body: 'Noto Sans', system-ui, sans-serif;
+  --font-accent: 'Nunito', system-ui, sans-serif;
+  
+  /* Font weights */
+  --font-thin: 100;
+  --font-extralight: 200;
+  --font-light: 300;
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  --font-black: 900;
+}
+
+/* Apply base styles */
+html {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
-    background: rgb(233,237,255);
-    background: linear-gradient(90deg, rgba(233,237,255,1) 0%, rgba(242,229,255,1) 100%);
-    min-height: 100vh;
-  }
+  font-family: var(--font-body);
+  color: rgb(var(--color-gray-800));
+  background-color: rgb(var(--color-gray-50));
+}

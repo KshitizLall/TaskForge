@@ -3,14 +3,16 @@ import { Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import { router } from "./routes/Router";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import "./App.css";
+import Footer from "./components/Footer";
 
 function App() {
   return (
-    <div className="min-h-screen bg-gradient-to-r from-[#E9EDFF] to-[#F2E5FF]">
+    <div className="min-h-screen bg-gradient-to-r from-neutral-300 to-stone-400">
       <div className="fixed top-0 left-0 right-0 z-50">
         <Navbar />
       </div>
-      <div className="pt-16"> {/* Add padding top to account for fixed navbar */}
+      <div className="pt-5">
         <Routes>
           {router.map((route) => {
             // If the route is protected and has an element
@@ -23,7 +25,7 @@ function App() {
                 />
               );
             }
-            
+
             // Regular non-protected route
             return (
               <Route
@@ -46,6 +48,7 @@ function App() {
           },
         }}
       />
+      <Footer version="1.0.0" companyName="Kshit_" />
     </div>
   );
 }

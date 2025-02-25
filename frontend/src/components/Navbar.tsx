@@ -10,8 +10,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { router } from "../routes/Router";
+import { getCurrentUser, isAuthenticated, logout } from "../utils/auth-utils";
 import Avatar from "./Avatar";
-import { isAuthenticated, getCurrentUser, logout } from "../utils/auth-utils";
 
 const LOGO_TEXT = "TaskForge.";
 
@@ -35,18 +35,18 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
+
   // Get authentication status and user info
   const authenticated = isAuthenticated();
   const user = getCurrentUser();
-  
+
   // Get user initials for avatar fallback
   const getUserInitials = () => {
     if (!user) return "?";
-    
+
     const firstName = user.first_name || "";
     const lastName = user.last_name || "";
-    
+
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
@@ -91,7 +91,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <div className="w-full flex justify-center mt-2 backdrop-blur-md">
+    <div className="w-full flex justify-center mt-5">
       <nav className="shadow-lg rounded-full max-w-3xl w-full px-6 mx-4 backdrop-blur-sm">
         <div className="flex justify-between h-14 items-center">
           {/* Logo */}
@@ -109,7 +109,7 @@ const Navbar = () => {
                 to={route.path}
                 className={`flex items-center space-x-2 text-sm font-medium transition-colors duration-200 ${
                   isActiveRoute(route.path)
-                    ? "text-blue-600 font-semibold"
+                    ? "text-stone-600 font-semibold"
                     : "text-gray-700 hover:text-gray-900"
                 }`}
               >
@@ -124,7 +124,7 @@ const Navbar = () => {
                 <button onClick={toggleDropdown} className="focus:outline-none">
                   <Avatar
                     fallback={getUserInitials()}
-                    className="cursor-pointer hover:ring-2 hover:ring-blue-200 transition-all duration-200"
+                    className="cursor-pointer hover:ring-2 hover:ring-stone-200 transition-all duration-200"
                   />
                 </button>
 
@@ -146,13 +146,9 @@ const Navbar = () => {
                           <Settings className="w-4 h-4" />
                           <span>Settings</span>
                         </button>
-                        <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
-                          <LayoutDashboard className="w-4 h-4" />
-                          <span>Dashboard</span>
-                        </button>
                       </div>
                       <div className="py-1">
-                        <button 
+                        <button
                           onClick={handleLogout}
                           className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
                         >
@@ -174,7 +170,7 @@ const Navbar = () => {
                 </Link>
                 <Link
                   to="/register"
-                  className="text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-full transition-colors"
+                  className="text-sm font-medium text-white bg-stone-600 hover:bg-stone-700 px-3 py-1.5 rounded-full transition-colors"
                 >
                   Register
                 </Link>
@@ -205,7 +201,7 @@ const Navbar = () => {
                     to={route.path}
                     className={`flex items-center space-x-2 text-sm font-medium transition-colors duration-200 ${
                       isActiveRoute(route.path)
-                        ? "text-blue-600 font-semibold"
+                        ? "text-stone-600 font-semibold"
                         : "text-gray-700 hover:text-gray-900"
                     }`}
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -214,7 +210,7 @@ const Navbar = () => {
                     <span>{route.label}</span>
                   </Link>
                 ))}
-                
+
                 {authenticated ? (
                   <div className="pt-2 border-t">
                     <div className="flex items-center space-x-3 mb-3">
@@ -239,7 +235,7 @@ const Navbar = () => {
                         <LayoutDashboard className="w-4 h-4" />
                         <span>Dashboard</span>
                       </button>
-                      <button 
+                      <button
                         onClick={handleLogout}
                         className="w-full text-left flex items-center space-x-2 text-sm text-red-600 hover:text-red-700 p-2 rounded hover:bg-gray-100"
                       >
@@ -259,7 +255,7 @@ const Navbar = () => {
                     </Link>
                     <Link
                       to="/register"
-                      className="w-full text-center text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 p-2 rounded transition-colors"
+                      className="w-full text-center text-sm font-medium text-white bg-stone-600 hover:bg-stone-700 p-2 rounded transition-colors"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Register

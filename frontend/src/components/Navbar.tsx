@@ -140,11 +140,15 @@ const Navbar = () => {
                       <div className="py-1">
                         <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
                           <User className="w-4 h-4" />
+                          <Link to="/profile" className="text-sm">
                           <span>Profile</span>
+                          </Link>
                         </button>
                         <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
                           <Settings className="w-4 h-4" />
+                          <Link to="/setting" className="text-sm">
                           <span>Settings</span>
+                          </Link>
                         </button>
                       </div>
                       <div className="py-1">

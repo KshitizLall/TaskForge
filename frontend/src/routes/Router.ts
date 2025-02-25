@@ -3,6 +3,8 @@ import Login from "../pages/Login";
 // You'll need to create/import these components
 import Home from "../pages/Home";
 import Tasks from "../pages/Task";
+import Profile from "../pages/Profile";
+import Settings from "../pages/Setting";
 
 // First, let's define what a route element can be
 type RouteElement = React.ComponentType<any>;
@@ -41,5 +43,17 @@ export const router: CustomRoute[] = [
     isNavbar: true,
     element: Tasks,
     protected: true // Tasks page is protected
+  },
+  {
+    path: "/profile",
+    label: "Profile",
+    isNavbar: false,
+    element: Profile
+  },
+  {
+    path: "/setting",
+    label: "Setting",
+    isNavbar: false,
+    element: Settings
   },
 ];

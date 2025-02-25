@@ -1,10 +1,9 @@
 import { Toaster } from "react-hot-toast";
 import { Route, Routes } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import { router } from "./routes/Router";
-import ProtectedRoute from "./routes/ProtectedRoute";
 import "./App.css";
-import Footer from "./components/Footer";
+import Navbar from "./components/Navbar";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import { router } from "./routes/Router";
 
 function App() {
   return (
@@ -48,7 +47,6 @@ function App() {
           },
         }}
       />
-      <Footer version="1.0.0" companyName="Kshit_" />
     </div>
   );
 }

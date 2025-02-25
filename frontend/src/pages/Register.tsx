@@ -132,7 +132,7 @@ const Register: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 backdrop-blur-lg bg-white/80 rounded-2xl shadow-xl p-8 border border-white/30 mt-14">
+      <div className="max-w-md w-full space-y-8 backdrop-blur-lg bg-white/80 rounded-2xl shadow-xl p-8 border border-white/30">
         {/* Header */}
         <div>
           <h2 className="mt-4 text-center text-3xl font-extrabold text-gray-900 tracking-tight">

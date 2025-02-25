@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { setAuthToken } from '../utils/auth-utils';
 
 interface LoginData {
-  username: string;  // Changed from email to username
+  username: string;
   password: string;
 }
 
@@ -17,7 +18,7 @@ const Login: React.FC = () => {
   const [errors, setErrors] = useState<ValidationErrors>({});
   
   const [formData, setFormData] = useState<LoginData>({
-    username: '',  // Changed from email to username
+    username: '',
     password: '',
   });
 
@@ -64,12 +65,18 @@ const Login: React.FC = () => {
 
     try {
       console.log('Sending login request with data:', formData);
-      const response = await fetch('http://localhost:3001/api/login', {  // Changed endpoint to match backend
+      
+      // Create URLSearchParams for form-urlencoded data
+      const formBody = new URLSearchParams();
+      formBody.append('username', formData.username);
+      formBody.append('password', formData.password);
+      
+      const response = await fetch('http://localhost:3001/api/users/login', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify(formData),
+        body: formBody,
       });
 
       console.log('Response received:', response);
@@ -81,9 +88,9 @@ const Login: React.FC = () => {
       }
 
       const { token, user } = data;  // Get token and user data from the already parsed response
-
-      // Store token in localStorage
-      localStorage.setItem('token', token);
+      
+      // Store token in localStorage using the auth utils
+      setAuthToken(token);
       
       // Store user data if needed
       localStorage.setItem('user', JSON.stringify(user));
@@ -180,6 +187,13 @@ const Login: React.FC = () => {
               </Link>
             </div>
           </div>
+
+          {/* Submit error message */}
+          {errors.submit && (
+            <div className="text-sm text-red-500 text-center bg-red-50 p-2 rounded-lg">
+              {errors.submit}
+            </div>
+          )}
 
           {/* Submit button */}
           <button

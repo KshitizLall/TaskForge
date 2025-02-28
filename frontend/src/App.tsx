@@ -7,14 +7,13 @@ import { router } from "./routes/Router";
 
 function App() {
   return (
-    <div className="min-h-screen bg-gradient-to-r from-neutral-300 to-stone-400">
+    <div className="min-h-screen font-quicksand">
       <div className="fixed top-0 left-0 right-0 z-50">
         <Navbar />
       </div>
-      <div className="pt-5">
+      <div>
         <Routes>
           {router.map((route) => {
-            // If the route is protected and has an element
             if (route.protected && route.element) {
               return (
                 <Route
@@ -24,8 +23,6 @@ function App() {
                 />
               );
             }
-
-            // Regular non-protected route
             return (
               <Route
                 key={route.path}
@@ -37,12 +34,13 @@ function App() {
         </Routes>
       </div>
       <Toaster
-        position="top-center"
+        position="top-right"
         toastOptions={{
-          duration: 3000,
+          duration: 5000,
           style: {
-            background: "#fff",
-            color: "#333",
+            borderRadius: '10px',
+            background: '#333',
+            color: '#fff',
             fontSize: "12px",
           },
         }}

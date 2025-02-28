@@ -1,79 +1,74 @@
 import {
   CheckSquare,
   Home,
-  LayoutDashboard,
   LogOut,
-  Menu,
   Settings,
   User,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { router } from "../routes/Router";
 import { getCurrentUser, isAuthenticated, logout } from "../utils/auth-utils";
 import Avatar from "./Avatar";
 
-const LOGO_TEXT = "TaskForge.";
+// Constants for reusable values
+const LOGO_TEXT = "FT";
 
-// Icon mapping for navigation items
-const getNavIcon = (label: string) => {
-  switch (label.toLowerCase()) {
-    case "home":
-      return <Home className="w-4 h-4" />;
-    case "tasks":
-      return <CheckSquare className="w-4 h-4" />;
-    case "services":
-      return <Settings className="w-4 h-4" />;
-    default:
-      return null;
-  }
+// Navigation item configuration
+const NAV_ITEMS = {
+  home: { icon: Home, label: "Home" },
+  tasks: { icon: CheckSquare, label: "Tasks" },
+  services: { icon: Settings, label: "Services" },
 };
 
+// User menu items configuration
+const USER_MENU_ITEMS = [
+  { icon: User, label: "Profile", path: "/profile" },
+  { icon: Settings, label: "Settings", path: "/setting" },
+];
+
 const Navbar = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Get authentication status and user info
+  // Authentication state
   const authenticated = isAuthenticated();
   const user = getCurrentUser();
+
+  console.log('Authentication Debug:', {
+    authenticated,
+    user,
+    isAuthenticatedType: typeof isAuthenticated,
+    getCurrentUserType: typeof getCurrentUser
+  });
 
   // Get user initials for avatar fallback
   const getUserInitials = () => {
     if (!user) return "?";
-
     const firstName = user.first_name || "";
     const lastName = user.last_name || "";
-
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
   // Filter routes for navbar
   const navbarRoutes = router.filter(
-    (route) => route.isNavbar !== false // Show routes where isNavbar is true or undefined
+    (route) => route.isNavbar !== false
   );
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
+  // Handle UI interactions
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+  const isActiveRoute = (path: string) => location.pathname === path;
+  
   const handleLogout = () => {
     logout();
     navigate("/login");
     setIsDropdownOpen(false);
-    setIsMobileMenuOpen(false);
   };
 
-  const isActiveRoute = (path: string) => {
-    return location.pathname === path;
-  };
-
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -85,191 +80,171 @@ const Navbar = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Get icon component based on route label
+  const getNavIcon = (label: string) => {
+    const key = label.toLowerCase() as keyof typeof NAV_ITEMS;
+    const IconComponent = NAV_ITEMS[key]?.icon;
+    return IconComponent ? <IconComponent className="w-4 h-4" /> : null;
+  };
+
+  // Render nav item
+  const renderNavItem = (route: any) => {
+    const active = isActiveRoute(route.path);
+    return (
+      <Link
+        key={route.path}
+        to={route.path}
+        className={`flex items-center space-x-2 text-sm font-medium transition-colors duration-200 px-3 py-2 rounded-full ${
+          active
+            ? "bg-stone-600 text-white"
+            : "text-gray-700 hover:bg-gray-50"
+        }`}
+      >
+        {getNavIcon(route.label)}
+        <span className="hidden sm:inline">{route.label}</span>
+      </Link>
+    );
+  };
+
+  // Logo animation variants
+  const logoVariants = {
+    animate: {
+      rotate: [0, 360],
+      transition: {
+        duration: 1,
+        repeat: Infinity,
+        repeatType: "loop" as const,
+        ease: "easeInOut",
+        repeatDelay: 5,
+      },
+    },
+  };
+
+  // Text gradient animation
+  const textVariants = {
+    animate: {
+      backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+      transition: {
+        duration: 4,
+        repeat: Infinity,
+        repeatType: "mirror" as const,
+        ease: "linear",
+      },
+    },
+  };
+
+  // Add more debug logs
+  useEffect(() => {
+    console.log('Navbar Render - Authentication:', {
+      authenticated,
+      user,
+      navbarRoutes
+    });
+  }, [authenticated, user, navbarRoutes]);
+
   return (
-    <div className="w-full flex justify-center mt-5">
-      <nav className="shadow-lg rounded-full max-w-3xl w-full px-6 mx-4 backdrop-blur-sm">
-        <div className="flex justify-between h-14 items-center">
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <Link to="/" className="text-lg font-bold text-gray-800">
-              {LOGO_TEXT}
+    <div className="fixed top-6 left-0 right-0 flex justify-center z-50">
+      <nav className="shadow-lg rounded-full bg-white/95 backdrop-blur-md max-w-3xl px-4 py-2 mx-4 border border-gray-100">
+        <div className="flex items-center">
+          {/* Animated Logo */}
+          <div className="flex-shrink-0 mr-3 overflow-hidden">
+            <Link to="/">
+              <motion.div 
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 shadow-md"
+                variants={logoVariants}
+                animate="animate"
+                whileHover={{ scale: 1 }}
+              >
+                <motion.span 
+                  className="font-extrabold text-transparent text-lg bg-clip-text"
+                  variants={textVariants}
+                  animate="animate"
+                  style={{
+                    backgroundImage: "linear-gradient(90deg, #ffffff, #f0f0f0, #ffffff)",
+                    backgroundSize: "200% 100%",
+                  }}
+                >
+                  {LOGO_TEXT}
+                </motion.span>
+              </motion.div>
             </Link>
           </div>
 
-          {/* Navigation Links and Avatar */}
-          <div className="hidden md:flex md:items-center md:space-x-8">
-            {navbarRoutes.map((route) => (
-              <Link
-                key={route.path}
-                to={route.path}
-                className={`flex items-center space-x-2 text-sm font-medium transition-colors duration-200 ${
-                  isActiveRoute(route.path)
-                    ? "text-stone-600 font-semibold"
-                    : "text-gray-700 hover:text-gray-900"
-                }`}
-              >
-                {getNavIcon(route.label)}
-                <span>{route.label}</span>
-              </Link>
-            ))}
-
-            {/* Authentication Links or Avatar Dropdown */}
-            {authenticated ? (
-              <div className="relative" ref={dropdownRef}>
-                <button onClick={toggleDropdown} className="focus:outline-none">
-                  <Avatar
-                    fallback={getUserInitials()}
-                    className="cursor-pointer hover:ring-2 hover:ring-stone-200 transition-all duration-200"
-                  />
-                </button>
-
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg backdrop-blur-sm ring-1 ring-black ring-opacity-5 bg-white/90">
-                    <div className="py-1 divide-y divide-gray-100">
-                      <div className="px-4 py-2">
-                        <p className="text-sm font-medium text-gray-900">
-                          {user?.first_name} {user?.last_name}
-                        </p>
-                        <p className="text-xs text-gray-500">{user?.email}</p>
-                      </div>
-                      <div className="py-1">
-                        <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
-                          <User className="w-4 h-4" />
-                          <Link to="/profile" className="text-sm">
-                          <span>Profile</span>
-                          </Link>
-                        </button>
-                        <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
-                          <Settings className="w-4 h-4" />
-                          <Link to="/setting" className="text-sm">
-                          <span>Settings</span>
-                          </Link>
-                        </button>
-                      </div>
-                      <div className="py-1">
-                        <button
-                          onClick={handleLogout}
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          <span>Logout</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center space-x-4">
-                <Link
-                  to="/login"
-                  className="text-sm font-medium text-gray-700 hover:text-gray-900"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="text-sm font-medium text-white bg-stone-600 hover:bg-stone-700 px-3 py-1.5 rounded-full transition-colors"
-                >
-                  Register
-                </Link>
-              </div>
-            )}
+          {/* Navigation Links - Visible on all screen sizes */}
+          <div className="flex items-center space-x-1 flex-1">
+            {navbarRoutes.map((route) => renderNavItem(route))}
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <button
-              onClick={toggleMobileMenu}
-              className="text-gray-700 hover:text-gray-900 p-2"
-              aria-label="Toggle mobile menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
+          {/* Authentication Links or Avatar Dropdown */}
+          {authenticated ? (
+            <div className="relative" ref={dropdownRef}>
+              <button onClick={toggleDropdown} className="focus:outline-none ml-2">
+                <Avatar
+                  fallback={getUserInitials()}
+                  className="cursor-pointer hover:ring-2 hover:ring-stone-200 transition-all duration-200"
+                />
+              </button>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-20 left-0 right-0 mx-4 z-50">
-            <div className="bg-white/90 backdrop-blur-sm shadow-lg rounded-lg p-4">
-              <div className="flex flex-col space-y-4">
-                {navbarRoutes.map((route) => (
-                  <Link
-                    key={route.path}
-                    to={route.path}
-                    className={`flex items-center space-x-2 text-sm font-medium transition-colors duration-200 ${
-                      isActiveRoute(route.path)
-                        ? "text-stone-600 font-semibold"
-                        : "text-gray-700 hover:text-gray-900"
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {getNavIcon(route.label)}
-                    <span>{route.label}</span>
-                  </Link>
-                ))}
-
-                {authenticated ? (
-                  <div className="pt-2 border-t">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <Avatar fallback={getUserInitials()} />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {user?.first_name} {user?.last_name}
-                        </p>
-                        <p className="text-xs text-gray-500">{user?.email}</p>
-                      </div>
+              {isDropdownOpen && (
+                <div className="absolute right-0 top-12 w-48 rounded-lg shadow-lg backdrop-blur-md ring-1 ring-black ring-opacity-5 bg-white/95">
+                  <div className="py-1 divide-y divide-gray-100">
+                    <div className="px-4 py-2">
+                      <p className="text-sm font-medium text-gray-900">
+                        {user?.first_name} {user?.last_name}
+                      </p>
+                      <p className="text-xs text-gray-500">{user?.email}</p>
                     </div>
-                    <div className="mt-3 space-y-2">
-                      <button className="w-full text-left flex items-center space-x-2 text-sm text-gray-700 hover:text-gray-900 p-2 rounded hover:bg-gray-100">
-                        <User className="w-4 h-4" />
-                        <span>Profile</span>
-                      </button>
-                      <button className="w-full text-left flex items-center space-x-2 text-sm text-gray-700 hover:text-gray-900 p-2 rounded hover:bg-gray-100">
-                        <Settings className="w-4 h-4" />
-                        <span>Settings</span>
-                      </button>
-                      <button className="w-full text-left flex items-center space-x-2 text-sm text-gray-700 hover:text-gray-900 p-2 rounded hover:bg-gray-100">
-                        <LayoutDashboard className="w-4 h-4" />
-                        <span>Dashboard</span>
-                      </button>
+                    <div className="py-1">
+                      {USER_MENU_ITEMS.map((item, index) => {
+                        const Icon = item.icon;
+                        return (
+                          <Link 
+                            key={index} 
+                            to={item.path} 
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                            onClick={() => setIsDropdownOpen(false)}
+                          >
+                            <Icon className="w-4 h-4" />
+                            <span>{item.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                    <div className="py-1">
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left flex items-center space-x-2 text-sm text-red-600 hover:text-red-700 p-2 rounded hover:bg-gray-100"
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Logout</span>
                       </button>
                     </div>
                   </div>
-                ) : (
-                  <div className="pt-2 border-t flex flex-col space-y-2">
-                    <Link
-                      to="/login"
-                      className="w-full text-center text-sm font-medium text-gray-700 hover:text-gray-900 p-2 rounded hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Login
-                    </Link>
-                    <Link
-                      to="/register"
-                      className="w-full text-center text-sm font-medium text-white bg-stone-600 hover:bg-stone-700 p-2 rounded transition-colors"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Register
-                    </Link>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Link
+                to="/login"
+                className="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-50"
+              >
+                <span className="hidden sm:inline">Login</span>
+                <User className="w-4 h-4 sm:hidden" />
+              </Link>
+              <Link
+                to="/register"
+                className="text-sm font-medium text-white bg-stone-600 hover:bg-stone-700 px-3 py-1.5 rounded-full transition-colors"
+              >
+                <span className="hidden sm:inline">Register</span>
+                <User className="w-4 h-4 sm:hidden" />
+              </Link>
+            </div>
+          )}
+        </div>
       </nav>
     </div>
   );

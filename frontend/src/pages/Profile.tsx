@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { 
-  User, 
-  Mail, 
-  UserCheck, 
-  Save, 
-  Loader2, 
+import {
+  User,
+  Mail,
+  UserCheck,
+  Save,
+  Loader2,
   AlertCircle,
-  ChevronDown
+  ChevronDown,
 } from 'lucide-react';
 import { authFetch, getCurrentUser } from '../utils/auth-utils';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import Loading from './exceptions/Loading';
+import ErrorPage from './exceptions/ErrorPage';
 
 interface UserProfile {
   _id: string;
@@ -23,7 +27,7 @@ interface UserProfile {
   updatedAt: string;
 }
 
-interface ProfileForm {
+interface ProfileFormValues {
   first_name: string;
   last_name: string;
   email: string;
@@ -33,49 +37,51 @@ interface ProfileForm {
 const Profile: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [updating, setUpdating] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [profileForm, setProfileForm] = useState<ProfileForm>({
-    first_name: '',
-    last_name: '',
-    email: '',
-    gender: ''
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  // Yup validation schema
+  const ProfileSchema = Yup.object().shape({
+    first_name: Yup.string().required('First name is required'),
+    last_name: Yup.string().required('Last name is required'),
+    email: Yup.string().email('Invalid email').required('Email is required'),
+    gender: Yup.string().required('Please select a gender'),
   });
 
-  // Fetch user profile data
+  // Format date helper
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  // Fetch user profile on mount
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         setLoading(true);
-        
-        // Get current user from localStorage
         const currentUser = getCurrentUser();
         if (!currentUser || !currentUser._id) {
           throw new Error('User information not found');
         }
-        
-        const response = await authFetch(`http://localhost:3001/api/users/${currentUser._id}`);
-        
+
+        const response = await authFetch(
+          `http://localhost:3001/api/users/${currentUser._id}`
+        );
+
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to fetch user profile');
         }
-        
-        const userData = await response.json();
-        setUserProfile(userData);
-        
-        // Initialize form with user data
-        setProfileForm({
-          first_name: userData.first_name || '',
-          last_name: userData.last_name || '',
-          email: userData.email || '',
-          gender: userData.gender || ''
-        });
-        
-        setError(null);
+
+        const data = await response.json();
+        setUserProfile(data);
+        setFetchError(null);
       } catch (err) {
         console.error('Error fetching user profile:', err);
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        setFetchError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
         setLoading(false);
       }
@@ -84,101 +90,14 @@ const Profile: React.FC = () => {
     fetchUserProfile();
   }, []);
 
-  // Handle form input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setProfileForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!userProfile) return;
-    
-    try {
-      setUpdating(true);
-      
-      const response = await authFetch(`http://localhost:3001/api/users/${userProfile._id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(profileForm),
-      });
-      
-      console.log('Update profile response status:', response.status);
-      const responseData = await response.json();
-      console.log('Update profile response data:', responseData);
-      
-      if (!response.ok) {
-        throw new Error(responseData.message || 'Failed to update profile');
-      }
-      
-      // Update the user profile state
-      setUserProfile(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          ...profileForm
-        };
-      });
-      
-      // Update the user data in localStorage
-      const currentUser = getCurrentUser();
-      if (currentUser) {
-        localStorage.setItem('user', JSON.stringify({
-          ...currentUser,
-          ...profileForm
-        }));
-      }
-      
-      toast.success('Profile updated successfully');
-      
-    } catch (err) {
-      console.error('Error updating profile:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to update profile');
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
+  // Show loading state
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen pt-20">
-        <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
-        <p className="mt-4 text-gray-600">Loading profile...</p>
-      </div>
-    );
+    return (<Loading />);
   }
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen pt-20 px-4">
-        <AlertCircle className="w-12 h-12 text-red-500" />
-        <h2 className="mt-4 text-xl font-bold text-gray-800">Error Loading Profile</h2>
-        <p className="mt-2 text-gray-600 text-center">{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          Try Again
-        </button>
-      </div>
-    );
+  // Show error state if profile fetch failed
+  if (fetchError) {
+    return <ErrorPage screenName="Unable to load Dashboard" errorMessage={fetchError} onRetry={() => window.location.reload()} />;
   }
 
   if (!userProfile) {
@@ -192,6 +111,42 @@ const Profile: React.FC = () => {
       </div>
     );
   }
+
+  // Handle form submission with Formik
+  const handleFormSubmit = async (values: ProfileFormValues, { setSubmitting }: any) => {
+    try {
+      const response = await authFetch(`http://localhost:3001/api/users/${userProfile._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.message || 'Failed to update profile');
+      }
+
+      // Update state and localStorage
+      setUserProfile((prev) => (prev ? { ...prev, ...values } : prev));
+      const currentUser = getCurrentUser();
+      if (currentUser) {
+        localStorage.setItem(
+          'user',
+          JSON.stringify({
+            ...currentUser,
+            ...values,
+          })
+        );
+      }
+      toast.success('Profile updated successfully');
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to update profile');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 pt-20">
@@ -208,177 +163,182 @@ const Profile: React.FC = () => {
                 </div>
               </div>
               <div className="md:ml-6 text-center md:text-left">
-                <h2 className="text-xl font-bold text-white">{userProfile.first_name} {userProfile.last_name}</h2>
+                <h2 className="text-xl font-bold text-white">
+                  {userProfile.first_name} {userProfile.last_name}
+                </h2>
                 <p className="text-blue-100">@{userProfile.username}</p>
-                <p className="text-blue-100">Member since {formatDate(userProfile.createdAt)}</p>
+                <p className="text-blue-100">
+                  Member since {formatDate(userProfile.createdAt)}
+                </p>
               </div>
             </div>
           </div>
           
-          {/* Profile Form */}
+          {/* Formik Form */}
           <div className="p-6">
-            <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">
-                    First Name
-                  </label>
-                  <div className="relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-5 w-5 text-gray-400" />
+            <Formik
+              initialValues={{
+                first_name: userProfile.first_name || '',
+                last_name: userProfile.last_name || '',
+                email: userProfile.email || '',
+                gender: userProfile.gender || '',
+              }}
+              validationSchema={ProfileSchema}
+              onSubmit={handleFormSubmit}
+            >
+              {({ isSubmitting }) => (
+                <Form>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">
+                        First Name
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
+                          <User className="h-5 w-5 text-gray-400" />
+                        </span>
+                        <Field
+                          id="first_name"
+                          name="first_name"
+                          placeholder="First Name"
+                          className="input input-bordered pl-10 w-full"
+                        />
+                      </div>
+                      <ErrorMessage name="first_name" component="div" className="text-red-500 text-xs mt-1" />
                     </div>
-                    <input
-                      type="text"
-                      id="first_name"
-                      name="first_name"
-                      value={profileForm.first_name}
-                      onChange={handleChange}
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="First Name"
-                    />
+
+                    <div>
+                      <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">
+                        Last Name
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
+                          <User className="h-5 w-5 text-gray-400" />
+                        </span>
+                        <Field
+                          id="last_name"
+                          name="last_name"
+                          placeholder="Last Name"
+                          className="input input-bordered pl-10 w-full"
+                        />
+                      </div>
+                      <ErrorMessage name="last_name" component="div" className="text-red-500 text-xs mt-1" />
+                    </div>
+
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
+                          <Mail className="h-5 w-5 text-gray-400" />
+                        </span>
+                        <Field
+                          type="email"
+                          id="email"
+                          name="email"
+                          placeholder="your.email@example.com"
+                          className="input input-bordered pl-10 w-full"
+                        />
+                      </div>
+                      <ErrorMessage name="email" component="div" className="text-red-500 text-xs mt-1" />
+                    </div>
+
+                    <div>
+                      <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
+                        Gender
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
+                          <UserCheck className="h-5 w-5 text-gray-400" />
+                        </span>
+                        <Field
+                          as="select"
+                          id="gender"
+                          name="gender"
+                          className="select select-bordered pl-10 pr-10 w-full"
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
+                          <option value="prefer_not_to_say">Prefer not to say</option>
+                        </Field>
+                        <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                        </span>
+                      </div>
+                      <ErrorMessage name="gender" component="div" className="text-red-500 text-xs mt-1" />
+                    </div>
                   </div>
-                </div>
-                
-                <div>
-                  <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">
-                    Last Name
-                  </label>
-                  <div className="relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-5 w-5 text-gray-400" />
+
+                  {/* Read-only Account Information */}
+                  <div className="mt-6">
+                    <h3 className="text-lg font-medium text-gray-700 mb-3">Account Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-1">
+                          Username
+                        </label>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
+                            <UserCheck className="h-5 w-5 text-gray-400" />
+                          </span>
+                          <input
+                            type="text"
+                            value={userProfile.username}
+                            readOnly
+                            className="input input-bordered pl-10 w-full bg-gray-50 text-gray-500 cursor-not-allowed"
+                          />
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">Username cannot be changed</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-1">
+                          Account Role
+                        </label>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
+                            <UserCheck className="h-5 w-5 text-gray-400" />
+                          </span>
+                          <input
+                            type="text"
+                            value={userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)}
+                            readOnly
+                            className="input input-bordered pl-10 w-full bg-gray-50 text-gray-500 cursor-not-allowed"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <input
-                      type="text"
-                      id="last_name"
-                      name="last_name"
-                      value={profileForm.last_name}
-                      onChange={handleChange}
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Last Name"
-                    />
                   </div>
-                </div>
-                
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address
-                  </label>
-                  <div className="relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={profileForm.email}
-                      onChange={handleChange}
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="your.email@example.com"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
-                    Gender
-                  </label>
-                  <div className="relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <UserCheck className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <select
-                      id="gender"
-                      name="gender"
-                      value={profileForm.gender}
-                      onChange={handleChange}
-                      className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+
+                  <div className="mt-8 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className={`btn btn-primary ${isSubmitting && 'loading'}`}
                     >
-                      <option value="">Select Gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                      <option value="prefer_not_to_say">Prefer not to say</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <ChevronDown className="h-4 w-4 text-gray-400" />
-                    </div>
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="-ml-1 mr-2 h-4 w-4" />
+                          Save Changes
+                        </>
+                      )}
+                    </button>
                   </div>
-                </div>
-              </div>
-              
-              {/* Read-only fields */}
-              <div className="mt-6">
-                <h3 className="text-lg font-medium text-gray-700 mb-3">Account Information</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">
-                      Username
-                    </label>
-                    <div className="relative rounded-md shadow-sm">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <UserCheck className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="text"
-                        value={userProfile.username}
-                        readOnly
-                        className="block w-full pl-10 pr-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-500 cursor-not-allowed"
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">Username cannot be changed</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">
-                      Account Role
-                    </label>
-                    <div className="relative rounded-md shadow-sm">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <UserCheck className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="text"
-                        value={userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)}
-                        readOnly
-                        className="block w-full pl-10 pr-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-500 cursor-not-allowed"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-8 flex justify-end">
-                <button
-                  type="submit"
-                  disabled={updating}
-                  className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                    updating ? 'opacity-75 cursor-not-allowed' : ''
-                  }`}
-                >
-                  {updating ? (
-                    <>
-                      <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="-ml-1 mr-2 h-4 w-4" />
-                      Save Changes
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+                </Form>
+              )}
+            </Formik>
           </div>
         </div>
-        
-        {/* Additional sections could be added here, such as:
-         * - Password change form
-         * - Account deletion
-         * - Activity history
-         */}
+
+        {/* Additional sections (e.g., password change, account deletion) can be added here */}
       </div>
     </div>
   );

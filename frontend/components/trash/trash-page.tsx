@@ -1,8 +1,15 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,29 +20,110 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { ArrowLeft, RotateCcw, Trash2, AlertTriangle } from "lucide-react"
-import { useTasks } from "@/contexts/tasks-context"
-import { useProjects } from "@/contexts/projects-context"
-import { EmptyState } from "@/components/ui/empty-state"
+} from "@/components/ui/alert-dialog";
+import { ArrowLeft, RotateCcw, Trash2, AlertTriangle } from "lucide-react";
+import { trashAPI } from "@/lib/api";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useToast } from "@/hooks/use-toast";
 
 interface TrashPageProps {
-  onBack: () => void
+  onBack: () => void;
 }
 
 export function TrashPage({ onBack }: TrashPageProps) {
-  const { getDeletedTasks, restoreTask, permanentlyDeleteTask } = useTasks()
-  const { getProject } = useProjects()
+  const [trashData, setTrashData] = useState<{
+    total: number;
+    projects: number;
+    tasks: number;
+    items: any[];
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const deletedTasks = getDeletedTasks()
+  useEffect(() => {
+    loadTrashData();
+  }, []);
 
-  const handleRestore = (taskId: string) => {
-    restoreTask(taskId)
-  }
+  const loadTrashData = async () => {
+    try {
+      setLoading(true);
+      const data = await trashAPI.getAllItems();
+      setTrashData(data);
+    } catch (error) {
+      console.error("Failed to load trash data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load deleted items",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handlePermanentDelete = (taskId: string) => {
-    permanentlyDeleteTask(taskId)
-  }
+  const handleRestore = async (
+    itemType: "project" | "task",
+    itemId: string
+  ) => {
+    try {
+      await trashAPI.restoreItem(itemType, itemId);
+      toast({
+        title: "Success",
+        description: `${
+          itemType.charAt(0).toUpperCase() + itemType.slice(1)
+        } restored successfully`,
+      });
+      await loadTrashData(); // Refresh the data
+    } catch (error) {
+      console.error("Failed to restore item:", error);
+      toast({
+        title: "Error",
+        description: `Failed to restore ${itemType}`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePermanentDelete = async (
+    itemType: "project" | "task",
+    itemId: string
+  ) => {
+    try {
+      await trashAPI.permanentDeleteItem(itemType, itemId);
+      toast({
+        title: "Success",
+        description: `${
+          itemType.charAt(0).toUpperCase() + itemType.slice(1)
+        } permanently deleted`,
+      });
+      await loadTrashData(); // Refresh the data
+    } catch (error) {
+      console.error("Failed to delete item:", error);
+      toast({
+        title: "Error",
+        description: `Failed to permanently delete ${itemType}`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEmptyTrash = async () => {
+    try {
+      await trashAPI.emptyTrash();
+      toast({
+        title: "Success",
+        description: "Trash emptied successfully",
+      });
+      await loadTrashData(); // Refresh the data
+    } catch (error) {
+      console.error("Failed to empty trash:", error);
+      toast({
+        title: "Error",
+        description: "Failed to empty trash",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -51,118 +139,170 @@ export function TrashPage({ onBack }: TrashPageProps) {
       <div className="flex items-center space-x-3">
         <Trash2 className="h-8 w-8 text-muted-foreground" />
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Trash</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Recover deleted tasks or remove them permanently</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Trash
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Recover deleted items or remove them permanently
+          </p>
         </div>
       </div>
 
-      {/* Stats */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Deleted Tasks</CardTitle>
-          <Trash2 className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{deletedTasks.length}</div>
-          <p className="text-xs text-muted-foreground">
-            {deletedTasks.length === 0 ? "No deleted tasks" : "Tasks in trash"}
-          </p>
-        </CardContent>
-      </Card>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Items</CardTitle>
+            <Trash2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{trashData?.total || 0}</div>
+            <p className="text-xs text-muted-foreground">Items in trash</p>
+          </CardContent>
+        </Card>
 
-      {/* Deleted Tasks */}
-      {deletedTasks.length === 0 ? (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Projects</CardTitle>
+            <Trash2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{trashData?.projects || 0}</div>
+            <p className="text-xs text-muted-foreground">Deleted projects</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Tasks</CardTitle>
+            <Trash2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{trashData?.tasks || 0}</div>
+            <p className="text-xs text-muted-foreground">Deleted tasks</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-end">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" disabled={!trashData?.total}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Empty Trash
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Empty Trash</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete all items in the trash. This action
+                cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleEmptyTrash}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Empty Trash
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+
+      {/* Deleted Items */}
+      {loading ? (
+        <div className="text-center py-8">Loading...</div>
+      ) : !trashData?.items?.length ? (
         <EmptyState
-          icon={<Trash2 className="h-12 w-12" />}
+          icon={<Trash2 className="h-12 w-12 text-muted-foreground" />}
           title="Trash is empty"
-          description="Deleted tasks will appear here. You can restore them or delete them permanently."
+          description="No deleted items found. Deleted projects and tasks will appear here."
         />
       ) : (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold">Deleted Tasks</h3>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <AlertTriangle className="h-4 w-4" />
-              <span>Tasks are automatically deleted after 30 days</span>
-            </div>
-          </div>
-
-          <div className="grid gap-4">
-            {deletedTasks.map((task) => {
-              const project = getProject(task.projectId)
-              return (
-                <Card key={task.id} className="border-destructive/20">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          {project && (
-                            <div className="flex items-center space-x-2">
-                              <div className={`w-3 h-3 rounded-full ${project.color}`} />
-                              <span className="text-sm text-muted-foreground">{project.name}</span>
-                            </div>
-                          )}
-                          <Badge variant="destructive" className="text-xs">
-                            Deleted
-                          </Badge>
-                        </div>
-                        <CardTitle className="text-lg">{task.title}</CardTitle>
-                        {task.description && <CardDescription className="mt-1">{task.description}</CardDescription>}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-muted-foreground">
-                        Deleted {task.deletedAt ? new Date(task.deletedAt).toLocaleDateString() : "Unknown"}
-                        {task.subtasks.length > 0 && <span className="ml-2">• {task.subtasks.length} subtasks</span>}
-                      </div>
+          <h3 className="text-lg font-medium">Deleted Items</h3>
+          <div className="space-y-3">
+            {trashData.items.map((item: any) => (
+              <Card key={`${item.type}-${item.id}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
                       <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRestore(task.id)}
-                          className="flex items-center space-x-2"
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                          <span>Restore</span>
-                        </Button>
-
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm" className="flex items-center space-x-2">
-                              <Trash2 className="h-4 w-4" />
-                              <span>Delete Forever</span>
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete task permanently?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. The task "{task.title}" and all its subtasks will be
-                                permanently deleted.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handlePermanentDelete(task.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete Forever
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <h4 className="font-medium">
+                          {item.type === "project" ? item.name : item.title}
+                        </h4>
+                        <Badge variant="secondary">{item.type}</Badge>
+                        {item.priority && (
+                          <Badge
+                            variant={
+                              item.priority === "high"
+                                ? "destructive"
+                                : "outline"
+                            }
+                          >
+                            {item.priority}
+                          </Badge>
+                        )}
                       </div>
+                      <p className="text-sm text-muted-foreground">
+                        {item.description}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Deleted: {new Date(item.deletedAt).toLocaleDateString()}{" "}
+                        at {new Date(item.deletedAt).toLocaleTimeString()}
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRestore(item.type, item.id)}
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Restore
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Forever
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Forever</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete "
+                              {item.type === "project" ? item.name : item.title}
+                              ". This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() =>
+                                handlePermanentDelete(item.type, item.id)
+                              }
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete Forever
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

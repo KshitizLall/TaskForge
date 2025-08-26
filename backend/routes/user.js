@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const authenticateToken = require("../middlewares/auth");
+const { authenticateToken } = require("../middlewares/auth");
 
 const {
   handleGetAllUsers,
@@ -12,23 +12,19 @@ const {
   handleSignUp,
 } = require("../controllers/user");
 
-// Login Route
+// Public routes - no authentication required
 router.post("/login", handleLogin);
-
-// Register Route
 router.post("/signup", handleSignUp);
 
-// Route to get all users and create a new user (protected)
-router
-  .route("/")
-  .get(handleGetAllUsers)
-  .post(handleCreateUser);
+// Protected routes - authentication required
+router.get("/", authenticateToken, handleGetAllUsers);
+router.post("/", authenticateToken, handleCreateUser);
 
 // Route to get, update, and delete a user by ID (protected)
 router
   .route("/:userId")
-  .get(handleGetUserById)
-  .patch(handleUpdateUserById)
-  .delete(handleDeleteUserById);
+  .get(authenticateToken, handleGetUserById)
+  .patch(authenticateToken, handleUpdateUserById)
+  .delete(authenticateToken, handleDeleteUserById);
 
 module.exports = router;

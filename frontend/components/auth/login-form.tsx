@@ -1,56 +1,64 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useAuth } from "@/contexts/auth-context"
-import { Loader2 } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useAuth } from "@/contexts/auth-context";
+import { Loader2 } from "lucide-react";
 
 interface LoginFormProps {
-  onToggleMode: () => void
+  onToggleMode: () => void;
 }
 
 export function LoginForm({ onToggleMode }: LoginFormProps) {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const { login, isLoading } = useAuth()
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { login, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
+    e.preventDefault();
+    setError("");
 
-    if (!email || !password) {
-      setError("Please fill in all fields")
-      return
+    if (!username || !password) {
+      setError("Please fill in all fields");
+      return;
     }
 
-    const success = await login(email, password)
+    const success = await login(username, password);
     if (!success) {
-      setError("Invalid email or password")
+      setError("Invalid username or password");
     }
-  }
+  };
 
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-        <CardDescription>Enter your credentials to access your projects</CardDescription>
+        <CardDescription>
+          Enter your credentials to access your projects
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="username"
+              type="text"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               disabled={isLoading}
             />
           </div>
@@ -79,11 +87,15 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
         </form>
         <div className="mt-4 text-center text-sm">
           Don't have an account?{" "}
-          <button type="button" onClick={onToggleMode} className="text-primary hover:underline">
+          <button
+            type="button"
+            onClick={onToggleMode}
+            className="text-primary hover:underline"
+          >
             Sign up
           </button>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

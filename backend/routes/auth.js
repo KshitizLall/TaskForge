@@ -1,13 +1,11 @@
 const express = require("express");
-const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const crypto = require("crypto"); // Import the crypto module
 const User = require("../models/userModel"); // Assuming your user model is defined in User.js
 const router = express.Router();
 
-// Generate a secure secret key
-const secretKey = crypto.randomBytes(32).toString("hex");
+// Use environment variable or default for JWT secret
+const JWT_SECRET = process.env.JWT_SECRET || "your-default-secret-key";
 
 // Route for user sign up
 router.post("/signup", async (req, res) => {
@@ -46,17 +44,42 @@ router.post("/signup", async (req, res) => {
 });
 
 // Route for user sign in
-router.post(
-  "/signin",
-  passport.authenticate("local", { session: false }),
-  async (req, res) => {
-    try {
-      const token = jwt.sign({ id: req.user._id }, secretKey); // Use the generated secret key
-      res.json({ token });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
+router.post("/signin", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    // Find user by username
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid username or password" });
     }
+
+    // Check password
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user._id, username: user.username },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        name: `${user.first_name} ${user.last_name}`.trim(),
+      },
+    });
+  } catch (err) {
+    console.error("Signin error:", err);
+    res.status(500).json({ message: "Internal server error" });
   }
-);
+});
 
 module.exports = router;
